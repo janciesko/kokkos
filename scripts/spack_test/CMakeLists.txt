@@ -6,7 +6,7 @@ file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/out/CMakeLists.txt.in ${CMAKE_CURRENT_SO
 #parse test_list.def and copy those tests that need it
 
 #Copy test source to Spack test directory
-set(TEST_FILE ${CMAKE_CURRENT_SOURCE_DIR}/example/tutorial/01_hello_world/hello_world.cpp)
+set(TEST_FILE ${SPACK_PACKAGE_SOURCE_DIR}/example/tutorial/01_hello_world/hello_world.cpp)
 file(COPY ${TEST_FILE} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
 
 #Configure test generator script with correct paths from Spack
