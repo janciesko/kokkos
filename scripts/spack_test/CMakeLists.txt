@@ -2,7 +2,7 @@ project(SpackTestGen)
 #Copy CMakeLists.txt.in to Spack test directory
 set(RELATIVE_PATH "scripts/spack_test")
 set(ABOLUTE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${RELATIVE_PATH}")
-file(COPY ${ABSOLUTE_PATH}/CMakeLists.txt.in DESTINATION ${ABSOLUTE_PATH}/out/ COPYONLY)
+file(COPY ${ABSOLUTE_PATH}/CMakeLists.txt.in DESTINATION ${ABSOLUTE_PATH}/out/)
 file(RENAME ${ABSOLUTE_PATH}/out/CMakeLists.txt.in ${ABSOLUTE_PATH}/out/CMakeLists.txt)
 
 #parse test_list.def and copy those tests that need it
