@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 3.13)
+project(HelloWorld)
+cmake_minimum_required(VERSION 3.12)
 project(kokkos_spack_test CXX)
 
 find_package(Kokkos REQUIRED)
 
-add_executable(kokkos_spack_test @TEST_FILE@)
+add_executable(kokkos_spack_test "@TEST_FILE@")
 target_link_libraries(kokkos_spack_test PRIVATE Kokkos::kokkos)
