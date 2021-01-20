@@ -1172,6 +1172,15 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
       : m_functor(arg_functor),
         m_mdr_policy(arg_policy),
         m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)) {}
+  template <typename Policy, typename Functor>
+  static int max_tile_size_product(const Policy &, const Functor &) {
+    /**
+     * 1024 here is just our guess for a reasonable max tile size,
+     * it isn't a hardware constraint. If people see a use for larger
+     * tile size products, we're happy to change this.
+     */
+    return 1024;
+  }
 };
 }  // namespace Impl
 }  // namespace Kokkos
@@ -1715,6 +1724,15 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
         m_reducer(reducer),
         m_result_ptr(reducer.view().data()),
         m_force_synchronous(!reducer.view().impl_track().has_record()) {}
+  template <typename Policy, typename Functor>
+  static int max_tile_size_product(const Policy &, const Functor &) {
+    /**
+     * 1024 here is just our guess for a reasonable max tile size,
+     * it isn't a hardware constraint. If people see a use for larger
+     * tile size products, we're happy to change this.
+     */
+    return 1024;
+  }
 };
 }  // namespace Impl
 }  // namespace Kokkos
@@ -2438,13 +2456,14 @@ KOKKOS_INLINE_FUNCTION
       thread, count);
 }
 
-template <typename iType>
-KOKKOS_INLINE_FUNCTION
-    Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HPXTeamMember>
-    ThreadVectorRange(const Impl::HPXTeamMember &thread, const iType &i_begin,
-                      const iType &i_end) {
+template <typename iType1, typename iType2>
+KOKKOS_INLINE_FUNCTION Impl::ThreadVectorRangeBoundariesStruct<
+    typename std::common_type<iType1, iType2>::type, Impl::HPXTeamMember>
+ThreadVectorRange(const Impl::HPXTeamMember &thread, const iType1 &i_begin,
+                  const iType2 &i_end) {
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HPXTeamMember>(
-      thread, i_begin, i_end);
+      thread, iType(i_begin), iType(i_end));
 }
 
 KOKKOS_INLINE_FUNCTION

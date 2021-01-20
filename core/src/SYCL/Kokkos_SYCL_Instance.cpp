@@ -110,9 +110,13 @@ void SYCLInternal::initialize(const sycl::device& d) {
         Kokkos::Impl::throw_runtime_exception(
             "There was an asynchronous SYCL error!\n");
     };
-    m_queue = std::make_unique<sycl::queue>(d, exception_handler);
+    m_queue.emplace(d, exception_handler);
     std::cout << SYCL::SYCLDevice(d) << '\n';
-    m_indirectKernel.emplace(IndirectKernelAllocator(*m_queue));
+
+    m_maxThreadsPerSM =
+        d.template get_info<sycl::info::device::max_work_group_size>();
+    m_indirectKernelMem.reset(*m_queue);
+    m_indirectReducerMem.reset(*m_queue);
   } else {
     std::ostringstream msg;
     msg << "Kokkos::Experimental::SYCL::initialize(...) FAILED";
@@ -132,7 +136,8 @@ void SYCLInternal::finalize() {
     std::abort();
   }
 
-  m_indirectKernel.reset();
+  m_indirectKernelMem.reset();
+  m_indirectReducerMem.reset();
   m_queue.reset();
 }
 
