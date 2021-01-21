@@ -9,7 +9,7 @@ FILE(READ ${TEST_LIST_DEF} TEST_FILES)
 foreach (TEST_FILE ${TEST_FILES})
   message("XXXXXX:" ${TEST_FILE})
   message("XXXXXX:" ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE})
-  file(COPY ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
+  file(COPY "${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE}" DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
 endforeach()
 
 #Configure test generator script with correct paths from Spack
