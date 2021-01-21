@@ -5,10 +5,13 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt.in DESTINATION ${CMAKE_CURR
 file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/out/CMakeLists.txt.in ${CMAKE_CURRENT_SOURCE_DIR}/out/CMakeLists.txt)
 
 #parse test_list.def and copy those tests that need it
+FILE(READ "${file}" TEST_FILES)
+STRING(REGEX REPLACE "\n" ";" TEST_FILES "${TEST_FILES}")
 
 #Copy test source to Spack test directory
-set(TEST_FILE ${SPACK_PACKAGE_SOURCE_DIR}/example/tutorial/01_hello_world/hello_world.cpp)
-file(COPY ${TEST_FILE} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
+foreach (TEST_FILE in TEST_FILES)
+	set(TEST_FILE_SRC ${SPACK_PACKAGE_SOURCE_DIR}/TEST_FILE)
+	file(COPY ${TEST_FILE_SRC} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
 
 #Configure test generator script with correct paths from Spack
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run_test.sh.in ${CMAKE_CURRENT_SOURCE_DIR}/out/run_test.sh @ONLY)
