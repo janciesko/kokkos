@@ -7,7 +7,7 @@ file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/out/CMakeLists.txt.in ${CMAKE_CURRENT_SO
 #parse test_list.def and copy those tests that need it
 set(TEST_LIST_DEF "${CMAKE_CURRENT_SOURCE_DIR}/test_list.def")
 FILE(READ "${TEST_LIST_DEF}" TEST_FILES)
-STRING(REGEX REPLACE "\n" TEST_FILES "${TEST_FILES}")
+#STRING(REGEX REPLACE "\n" TEST_FILES "${TEST_FILES}")
 
 #Copy test source to Spack test directory
 foreach (TEST_FILE IN LISTS "${TEST_FILES}")
