@@ -12,7 +12,7 @@ FILE(READ "${TEST_LIST_DEF}" TEST_FILES)
 #Copy test source to Spack test directory
 foreach (TEST_FILE IN LISTS "${TEST_FILES}")
 	set(TEST_FILE_SRC ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE})
-	message(${TEST_FILE_SRC})
+	message(VERBOSE ${TEST_FILE_SRC})
 	file(COPY ${TEST_FILE_SRC} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
 endforeach()
 
