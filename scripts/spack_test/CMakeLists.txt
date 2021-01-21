@@ -8,6 +8,7 @@ FILE(READ ${TEST_LIST_DEF} TEST_FILES)
 #Copy test source to Spack test directory
 foreach (TEST_FILE ${TEST_FILES})
   message("XXXXXX:" ${TEST_FILE})
+  message("XXXXXX:" ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE})
   file(COPY ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
 endforeach()
 
