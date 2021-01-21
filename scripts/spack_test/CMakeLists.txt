@@ -12,6 +12,7 @@ STRING(REGEX REPLACE "\n" ";" TEST_FILES "${TEST_FILES}")
 foreach (TEST_FILE in TEST_FILES)
 	set(TEST_FILE_SRC ${SPACK_PACKAGE_SOURCE_DIR}/TEST_FILE)
 	file(COPY ${TEST_FILE_SRC} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
+endforeach()
 
 #Configure test generator script with correct paths from Spack
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run_test.sh.in ${CMAKE_CURRENT_SOURCE_DIR}/out/run_test.sh @ONLY)
