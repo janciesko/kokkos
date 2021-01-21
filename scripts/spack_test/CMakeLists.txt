@@ -6,8 +6,8 @@ set(TEST_LIST_DEF ${CMAKE_CURRENT_SOURCE_DIR}/test_list.def)
 FILE(READ ${TEST_LIST_DEF} TEST_FILES)
 
 #Copy test source to Spack test directory
-foreach (TEST_FILE IN LISTS ${TEST_FILES})
-#  message("XXXXXX:" ${TEST_FILE})
+foreach (TEST_FILE ${TEST_FILES})
+  message("XXXXXX:" ${TEST_FILE})
   file(COPY ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
 endforeach()
 
