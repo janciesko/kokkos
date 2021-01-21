@@ -12,6 +12,7 @@ STRING(REGEX REPLACE "\n" ";" TEST_FILES "${TEST_FILES}")
 #Copy test source to Spack test directory
 foreach (TEST_FILE in ${TEST_FILES})
 	set(TEST_FILE_SRC ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE})
+	message(${TEST_FILE_SRC})
 	file(COPY ${TEST_FILE_SRC} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
 endforeach()
 
