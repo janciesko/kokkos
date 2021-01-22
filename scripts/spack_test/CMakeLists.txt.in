@@ -4,6 +4,7 @@ project(kokkos_spack_test CXX)
 find_package(Kokkos REQUIRED)
 
 set(TEST_FILES "@TEST_FILES@")
+set(CMAKE_CXX_COMPILER ${Kokkos_CXX_COMPILER})
 
 foreach(TEST_FILE ${TEST_FILES} )
     string( REPLACE ".cpp" "" TEST_NAME ${TEST_FILE} )
