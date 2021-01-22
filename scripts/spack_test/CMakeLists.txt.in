@@ -3,6 +3,8 @@ project(kokkos_spack_test CXX)
 
 find_package(Kokkos REQUIRED)
 
+set(TEST_FILES "@TEST_FILES@")
+
 foreach(TEST_FILE ${TEST_FILES} )
     string( REPLACE ".cpp" "" TEST_NAME ${TEST_FILE} )
     string( REGEX REPLACE ".+\/" TEST_NAME ${TEST_NAME} )
