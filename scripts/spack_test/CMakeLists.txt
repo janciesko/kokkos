@@ -13,7 +13,7 @@ foreach(TEST_FILE ${TEST_FILES} )
     string( REGEX REPLACE ".+\/" "" TEST_FILE ${TEST_FILE} )
     list(APPEND SRC_NAME_LIST ${TEST_FILE})
     string( REPLACE ".cpp" "" TEST_FILE ${TEST_FILE} )
-    list(APPEND BIN_NAME_LIST ${TEST_FILE}
+    list(APPEND BIN_NAME_LIST ${TEST_FILE})
 endforeach()
 
 #Configure test generator script with correct paths from Spack
