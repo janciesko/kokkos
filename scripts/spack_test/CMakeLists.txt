@@ -6,9 +6,10 @@ file(STRINGS ${TEST_LIST_DEF} TEST_FILES)
 #Copy test source to Spack test directory
 foreach (TEST_FILE ${TEST_FILES})
   set(TEST_FILE_LOCATION ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE})
-  file(COPY ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+  file(COPY ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
 endforeach()
 
+#Clean up names
 foreach(TEST_FILE ${TEST_FILES} )
     string( REGEX REPLACE ".+\/" "" TEST_FILE ${TEST_FILE} )
     list(APPEND SRC_NAME_LIST ${TEST_FILE})
@@ -16,6 +17,6 @@ foreach(TEST_FILE ${TEST_FILES} )
     list(APPEND BIN_NAME_LIST ${TEST_FILE})
 endforeach()
 
-#Configure test generator script with correct paths from Spack
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt.in ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run.sh.in ${CMAKE_CURRENT_SOURCE_DIR}/run.sh @ONLY)
+#Configure test cmake script and run script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt.in ${CMAKE_CURRENT_SOURCE_DIR}/out/CMakeLists.txt @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run.sh.in ${CMAKE_CURRENT_SOURCE_DIR}/out/run.sh @ONLY)
