@@ -3,5 +3,10 @@ project(kokkos_spack_test CXX)
 
 find_package(Kokkos REQUIRED)
 
-add_executable(kokkos_spack_test ${TEST_FILE})
-target_link_libraries(kokkos_spack_test Kokkos::kokkos)
+foreach(TEST_FILE ${TEST_FILES} )
+    string( REPLACE ".cpp" "" TEST_NAME ${TEST_FILE} )
+    string( REGEX REPLACE ".+\/" TEST_NAME ${TEST_NAME} )
+    add_executable( ${TEST_NAME} ${TEST_FILE} )
+    target_link_libraries( ${TEST_NAME} Kokkos::kokkos )
+endforeach()
+
