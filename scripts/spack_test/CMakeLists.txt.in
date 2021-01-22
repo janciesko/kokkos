@@ -7,7 +7,7 @@ set(TEST_FILES "@TEST_FILES@")
 
 foreach(TEST_FILE ${TEST_FILES} )
     string( REPLACE ".cpp" "" TEST_NAME ${TEST_FILE} )
-    string( REGEX REPLACE ".+\/" TEST_NAME ${TEST_NAME} )
+    string( REGEX REPLACE ".+\/" "" TEST_NAME ${TEST_NAME} )
     add_executable( ${TEST_NAME} ${TEST_FILE} )
     target_link_libraries( ${TEST_NAME} Kokkos::kokkos )
 endforeach()
