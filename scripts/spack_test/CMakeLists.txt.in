@@ -3,14 +3,12 @@ project(kokkos_spack_test CXX)
 
 find_package(Kokkos REQUIRED)
 
-set(TEST_FILES "@TEST_FILES@")
+set(SRC_NAME_LIST "@SRC_NAME_LIST@")
+set(BIN_NAME_LIST "@BIN_NAME_LIST@")
 set(CMAKE_CXX_COMPILER ${Kokkos_CXX_COMPILER})
 
-foreach(TEST_FILE ${TEST_FILES} )
-    string( REPLACE ".cpp" "" TEST_NAME ${TEST_FILE} )
-    string( REGEX REPLACE ".+\/" "" TEST_NAME ${TEST_NAME} )
-    string( REGEX REPLACE ".+\/" "" TEST_FILE ${TEST_FILE} )
-    add_executable( ${TEST_NAME} ${TEST_FILE} )
-    target_link_libraries( ${TEST_NAME} Kokkos::kokkos )
+foreach(enum IN ZIP_LISTS BIN_NAME_LIST SRC_NAME_LIST)
+    add_executable( enum_0 enum_1 )
+    target_link_libraries( enum_0 Kokkos::kokkos )
 endforeach()
 

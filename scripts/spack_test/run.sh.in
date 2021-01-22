@@ -1,7 +1,7 @@
 
 #!/bin/bash
 
-TEST_FILES="@TEST_FILES@"
+TEST_FILES="@BIN_NAME_LIST@"
 
 for TEST_FILE in ${TEST_FILES}
 do
