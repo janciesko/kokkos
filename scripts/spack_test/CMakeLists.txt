@@ -7,15 +7,12 @@ file(STRINGS ${TEST_LIST_DEF} TEST_FILES)
 
 #Copy test source to Spack test directory
 foreach (TEST_FILE ${TEST_FILES})
-  message("XXXXXX:" ${TEST_FILE})
-  message("YYY")
-  message("XXXXXX:" ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE})
   set(TEST_FILE_LOCATION ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE})
-  file(COPY "${TEST_FILE_LOCATION}" DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
+  file(COPY ${SPACK_PACKAGE_SOURCE_DIR}/${TEST_FILE} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/out)
 endforeach()
 
 #Configure test generator script with correct paths from Spack
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run_test.sh.in ${CMAKE_CURRENT_SOURCE_DIR}/out/run_test.sh @ONLY)
-
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/make.sh.in ${CMAKE_CURRENT_SOURCE_DIR}/out/make.sh @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run.sh.in ${CMAKE_CURRENT_SOURCE_DIR}/out/run.sh @ONLY)
 #Run test generator script
 #add_test(NAME SPACK_TEST COMMAND /bin/bash ${CURRENT_TEST_DIR}/sources/run_test.sh)
