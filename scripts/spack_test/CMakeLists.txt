@@ -14,5 +14,3 @@ endforeach()
 #Configure test generator script with correct paths from Spack
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/make.sh.in ${CMAKE_CURRENT_SOURCE_DIR}/out/make.sh @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/run.sh.in ${CMAKE_CURRENT_SOURCE_DIR}/out/run.sh @ONLY)
-#Run test generator script
-#add_test(NAME SPACK_TEST COMMAND /bin/bash ${CURRENT_TEST_DIR}/sources/run_test.sh)
