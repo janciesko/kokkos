@@ -2,9 +2,10 @@
 #!/bin/bash
 
 TEST_FILES="@BIN_NAME_LIST@"
+FILES=$(echo $TEST_FILES | tr ";" "\n")
 
-for TEST_FILE in ${TEST_FILES}
+for FILE in $FILES
 do
-  ./$TEST_FILE
+  echo $FILE
+  ./$FILE
 done
-
