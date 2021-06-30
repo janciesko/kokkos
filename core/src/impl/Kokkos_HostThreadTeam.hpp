@@ -480,6 +480,12 @@ class HostThreadTeamMember {
                                           m_data.m_team_rank);
   }
 
+  HostThreadTeamMember shrink_league(int skip) const {
+    HostThreadTeamMember team(m_data, m_league_rank - skip, m_league_size - skip);
+    return team;
+  }
+
+
   //--------------------------------------------------------------------------
   // Team collectives
   //--------------------------------------------------------------------------

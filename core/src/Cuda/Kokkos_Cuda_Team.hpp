@@ -525,6 +525,13 @@ class CudaTeamMember {
 #endif
   }
 
+  __device__ CudaTeamMember shrink_league(int skip) const {
+    CudaTeamMember copy(*this);
+    copy.m_league_rank = m_league_rank - skip;
+    copy.m_league_size = m_league_size - skip;
+    return copy;
+  }
+
   //----------------------------------------
   // Private for the driver
 
