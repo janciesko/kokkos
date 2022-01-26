@@ -253,7 +253,9 @@ struct ViewCtorProp : public ViewCtorProp<void, P>... {
   template <typename... Args>
   KOKKOS_INLINE_FUNCTION ViewCtorProp(pointer_type arg0, Args const &... args)
       : ViewCtorProp<void, pointer_type>(arg0),
-        ViewCtorProp<void, typename ViewCtorProp<void, Args>::type>(args)... {}
+        ViewCtorProp<void, typename ViewCtorProp<void, Args>::type>(args)... {
+          printf("XXX:%i\n",arg0);
+        }
 
   /* Copy from a matching property subset */
   KOKKOS_INLINE_FUNCTION ViewCtorProp(pointer_type arg0)

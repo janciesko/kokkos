@@ -62,7 +62,7 @@ TEST(TEST_CATEGORY, view_layoutstride_left_to_layoutleft_assignment) {
          static_cast<unsigned long>(t));
 
   {  // Assignment of rank-1 LayoutLeft = LayoutStride
-    int ndims   = 1;
+   /* int ndims   = 1;
     int dims[]  = {10};
     int order[] = {0};
     Kokkos::LayoutStride layout =
@@ -92,10 +92,30 @@ TEST(TEST_CATEGORY, view_layoutstride_left_to_layoutleft_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
+
+
+
+/*****/
+    auto alloc = Kokkos::view_alloc("test", Kokkos::AllowPadding);
+    auto darr = Kokkos::View<double**, Kokkos::CudaSpace>(alloc, 17, 4);
+    printf("%i, %i\n", darr.stride(0), darr.stride(1));
+
+    auto darr_2 = darr;
+    auto harr = Kokkos::create_mirror_view(darr);
+
+    ASSERT_EQ(darr.stride(1), darr_2.stride(1));
+    ASSERT_EQ(darr.stride(1), harr.stride(1));
+
   }
-  {  // Assignment of rank-2 LayoutLeft = LayoutStride
+  /*{  // Assignment of rank-2 LayoutLeft = LayoutStride
     int ndims   = 2;
     int dims[]  = {10, 9};
     int order[] = {0, 1};
@@ -126,8 +146,14 @@ TEST(TEST_CATEGORY, view_layoutstride_left_to_layoutleft_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-3 LayoutLeft = LayoutStride
     int ndims   = 3;
@@ -160,8 +186,15 @@ TEST(TEST_CATEGORY, view_layoutstride_left_to_layoutleft_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-4 LayoutLeft = LayoutStride
     int ndims   = 4;
@@ -194,8 +227,14 @@ TEST(TEST_CATEGORY, view_layoutstride_left_to_layoutleft_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-5 LayoutLeft = LayoutStride
     int ndims   = 5;
@@ -228,8 +267,14 @@ TEST(TEST_CATEGORY, view_layoutstride_left_to_layoutleft_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-6 LayoutLeft = LayoutStride
     int ndims   = 6;
@@ -262,8 +307,14 @@ TEST(TEST_CATEGORY, view_layoutstride_left_to_layoutleft_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-7 LayoutLeft = LayoutStride
     int ndims   = 7;
@@ -296,8 +347,14 @@ TEST(TEST_CATEGORY, view_layoutstride_left_to_layoutleft_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-8 LayoutLeft = LayoutStride
     int ndims   = 8;
@@ -330,9 +387,15 @@ TEST(TEST_CATEGORY, view_layoutstride_left_to_layoutleft_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
-  }
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
+  }*/
 }
 
 TEST(TEST_CATEGORY, view_layoutstride_right_to_layoutright_assignment) {
@@ -374,8 +437,14 @@ TEST(TEST_CATEGORY, view_layoutstride_right_to_layoutright_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-2 LayoutRight = LayoutStride
     int ndims   = 2;
@@ -408,8 +477,14 @@ TEST(TEST_CATEGORY, view_layoutstride_right_to_layoutright_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-3 LayoutRight = LayoutStride
     int ndims   = 3;
@@ -442,8 +517,14 @@ TEST(TEST_CATEGORY, view_layoutstride_right_to_layoutright_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-4 LayoutRight = LayoutStride
     int ndims   = 4;
@@ -476,8 +557,14 @@ TEST(TEST_CATEGORY, view_layoutstride_right_to_layoutright_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-5 LayoutRight = LayoutStride
     int ndims   = 5;
@@ -510,8 +597,14 @@ TEST(TEST_CATEGORY, view_layoutstride_right_to_layoutright_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-6 LayoutRight = LayoutStride
     int ndims   = 6;
@@ -544,8 +637,14 @@ TEST(TEST_CATEGORY, view_layoutstride_right_to_layoutright_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-7 LayoutRight = LayoutStride
     int ndims   = 7;
@@ -578,8 +677,14 @@ TEST(TEST_CATEGORY, view_layoutstride_right_to_layoutright_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
   {  // Assignment of rank-8 LayoutRight = LayoutStride
     int ndims   = 8;
@@ -612,8 +717,14 @@ TEST(TEST_CATEGORY, view_layoutstride_right_to_layoutright_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
 }
 
@@ -659,8 +770,14 @@ TEST(TEST_CATEGORY_DEATH, view_layoutstride_right_to_layoutleft_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
 // WORKAROUND OPENMPTARGET : death tests don't seem to work ...
 #if defined(KOKKOS_ENABLE_OPENMPTARGET)
@@ -814,8 +931,14 @@ TEST(TEST_CATEGORY_DEATH, view_layoutstride_left_to_layoutright_assignment) {
         break;
       }
     }
-    ASSERT_EQ(dst.span(), src.span());
+    // check data
     ASSERT_EQ(test, true);
+
+    // check properties
+    ASSERT_EQ(dst.span(), src.span());
+    for(size_t dim = 0; dim < src.Rank; ++dim){
+      ASSERT_EQ(h_src.stride(dim), src.stride(dim));
+    } 
   }
 // WORKAROUND OPENMPTARGET : death tests don't seem to work ...
 #if defined(KOKKOS_ENABLE_OPENMPTARGET)

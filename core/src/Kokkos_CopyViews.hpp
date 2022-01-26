@@ -3234,9 +3234,11 @@ create_mirror(const Kokkos::View<T, P...>& src, const I&... arg_prop) {
   using src_type = View<T, P...>;
   using dst_type = typename src_type::HostMirror;
 
+      printf("HERE: %i\n", src.stride(1));
+
   return dst_type(
       Kokkos::view_alloc(std::string(src.label()).append("_mirror"),
-                         arg_prop...),
+                         arg_prop...),/*
       src.rank_dynamic > 0 ? src.extent(0) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       src.rank_dynamic > 1 ? src.extent(1) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       src.rank_dynamic > 2 ? src.extent(2) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -3244,7 +3246,10 @@ create_mirror(const Kokkos::View<T, P...>& src, const I&... arg_prop) {
       src.rank_dynamic > 4 ? src.extent(4) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       src.rank_dynamic > 5 ? src.extent(5) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       src.rank_dynamic > 6 ? src.extent(6) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-      src.rank_dynamic > 7 ? src.extent(7) : KOKKOS_IMPL_CTOR_DEFAULT_ARG);
+      src.rank_dynamic > 7 ? src.extent(7) : KOKKOS_IMPL_CTOR_DEFAULT_ARG*/
+      src.layout());
+
+
 }
 
 template <class T, class... P, class... I>
@@ -3276,6 +3281,8 @@ create_mirror(const Kokkos::View<T, P...>& src, const I&... arg_prop) {
   layout.stride[6] = src.stride_6();
   layout.stride[7] = src.stride_7();
 
+  printf("HERE 1x\n");
+
   return dst_type(Kokkos::view_alloc(std::string(src.label()).append("_mirror"),
                                      arg_prop...),
                   layout);
@@ -3285,6 +3292,7 @@ create_mirror(const Kokkos::View<T, P...>& src, const I&... arg_prop) {
 template <class Space, class T, class... P, class... I>
 typename Impl::MirrorType<Space, T, P...>::view_type create_mirror(
     const Space&, const Kokkos::View<T, P...>& src, const I&... arg_prop) {
+      printf("3.1\n");
   return typename Impl::MirrorType<Space, T, P...>::view_type(
       Kokkos::view_alloc(src.label(), arg_prop...), src.layout());
 }
@@ -3295,12 +3303,14 @@ std::enable_if_t<
     std::is_same<typename ViewTraits<T, P...>::specialize, void>::value,
     typename Kokkos::View<T, P...>::HostMirror>
 create_mirror(Kokkos::View<T, P...> const& v) {
+  printf("3.2\n");
   return Impl::create_mirror(v);
 }
 
 template <class T, class... P>
 typename Kokkos::View<T, P...>::HostMirror create_mirror(
     Kokkos::Impl::WithoutInitializing_t wi, Kokkos::View<T, P...> const& v) {
+      printf("3.3\n");
   return Impl::create_mirror(v, wi);
 }
 
@@ -3308,6 +3318,7 @@ template <class Space, class T, class... P,
           typename Enable = std::enable_if_t<Kokkos::is_space<Space>::value>>
 typename Impl::MirrorType<Space, T, P...>::view_type create_mirror(
     Space const& space, Kokkos::View<T, P...> const& v) {
+      printf("3.4\n");
   return Impl::create_mirror(space, v);
 }
 
@@ -3316,6 +3327,7 @@ template <class Space, class T, class... P,
 typename Impl::MirrorType<Space, T, P...>::view_type create_mirror(
     Kokkos::Impl::WithoutInitializing_t wi, Space const& space,
     Kokkos::View<T, P...> const& v) {
+      printf("3.5\n");
   return Impl::create_mirror(space, v, wi);
 }
 
@@ -3331,6 +3343,7 @@ inline typename std::enable_if<
          typename Kokkos::View<T, P...>::HostMirror::data_type>::value),
     typename Kokkos::View<T, P...>::HostMirror>::type
 create_mirror_view(const Kokkos::View<T, P...>& src, const I&...) {
+  printf("2.4\n");
   return src;
 }
 
@@ -3344,6 +3357,7 @@ inline typename std::enable_if<
           typename Kokkos::View<T, P...>::HostMirror::data_type>::value),
     typename Kokkos::View<T, P...>::HostMirror>::type
 create_mirror_view(const Kokkos::View<T, P...>& src, const I&... arg_prop) {
+  printf("2.3\n");
   return Kokkos::create_mirror(arg_prop..., src);
 }
 
@@ -3354,6 +3368,7 @@ typename std::enable_if<
     typename Impl::MirrorViewType<Space, T, P...>::view_type>::type
 create_mirror_view(const Space&, const Kokkos::View<T, P...>& src,
                    const I&...) {
+                     printf("2.2\n");
   return src;
 }
 
@@ -3364,6 +3379,7 @@ typename std::enable_if<
     typename Impl::MirrorViewType<Space, T, P...>::view_type>::type
 create_mirror_view(const Space&, const Kokkos::View<T, P...>& src,
                    const I&... arg_prop) {
+                     printf("2\n");
   return typename Impl::MirrorViewType<Space, T, P...>::view_type(
       Kokkos::view_alloc(src.label(), arg_prop...), src.layout());
 }
@@ -3372,6 +3388,7 @@ create_mirror_view(const Space&, const Kokkos::View<T, P...>& src,
 template <class T, class... P>
 typename Kokkos::View<T, P...>::HostMirror create_mirror_view(
     Kokkos::View<T, P...> const& v) {
+      printf("1\n");
   return Impl::create_mirror_view(v);
 }
 

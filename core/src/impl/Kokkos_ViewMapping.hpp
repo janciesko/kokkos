@@ -1606,7 +1606,7 @@ struct ViewOffset<
   KOKKOS_INLINE_FUNCTION
   constexpr array_layout layout() const {
     return array_layout(m_dim.N0, m_dim.N1, m_dim.N2, m_dim.N3, m_dim.N4,
-                        m_dim.N5, m_dim.N6, m_dim.N7);
+                        m_dim.N5, m_dim.N6, m_dim.N7 /*m_stride*/);
   }
 
   KOKKOS_INLINE_FUNCTION constexpr size_type dimension_0() const {
