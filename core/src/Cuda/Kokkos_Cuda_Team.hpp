@@ -138,6 +138,13 @@ class CudaTeamMember {
 #endif
   }
 
+  KOKKOS_INLINE_FUNCTION CudaTeamMember shrink_league(int skip) const {
+    CudaTeamMember copy(*this);
+    copy.m_league_rank = m_league_rank - skip;
+    copy.m_league_size = m_league_size - skip;
+    return copy;
+  }
+
   KOKKOS_INLINE_FUNCTION int team_size() const {
 #ifdef __CUDA_ARCH__
     return blockDim.y;
