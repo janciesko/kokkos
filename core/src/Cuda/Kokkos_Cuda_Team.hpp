@@ -107,6 +107,13 @@ class CudaTeamMember {
     KOKKOS_IF_ON_HOST((return 0;))
   }
 
+  KOKKOS_INLINE_FUNCTION CudaTeamMember shrink_league(int skip) const {
+    CudaTeamMember copy(*this);
+    copy.m_league_rank = m_league_rank - skip;
+    copy.m_league_size = m_league_size - skip;
+    return copy;
+  }
+
   KOKKOS_INLINE_FUNCTION int team_size() const {
     KOKKOS_IF_ON_DEVICE((return blockDim.y;))
     KOKKOS_IF_ON_HOST((return 1;))
