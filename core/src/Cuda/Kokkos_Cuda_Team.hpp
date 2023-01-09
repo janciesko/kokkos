@@ -146,6 +146,13 @@ class CudaTeamMember {
         ))
   }
 
+  KOKKOS_INLINE_FUNCTION CudaTeamMember shrink_league(int skip) const {
+    CudaTeamMember copy(*this);
+    copy.m_league_rank = m_league_rank - skip;
+    copy.m_league_size = m_league_size - skip;
+    return copy;
+  }
+
   //--------------------------------------------------------------------------
 
   template <class ValueType>
