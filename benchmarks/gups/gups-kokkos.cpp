@@ -68,20 +68,7 @@ void run_gups(GUPSDeviceArray& indices, GUPSDeviceArray& data,
 
 int run_benchmark(const GUPSIndex indicesCount, const GUPSIndex dataCount,
                   const int repeats, const bool useAtomics) {
-  printf("Reports fastest timing per kernel\n");
-  printf("Creating Views...\n");
 
-  printf("Memory Sizes:\n");
-  printf("- Elements:      %15" PRIu64 " (%12.4f MB)\n",
-         static_cast<uint64_t>(dataCount),
-         1.0e-6 * ((double)dataCount * (double)sizeof(int64_t)));
-  printf("- Indices:       %15" PRIu64 " (%12.4f MB)\n",
-         static_cast<uint64_t>(indicesCount),
-         1.0e-6 * ((double)indicesCount * (double)sizeof(int64_t)));
-  printf(" - Atomics:      %15s\n", (useAtomics ? "Yes" : "No"));
-  printf("Benchmark kernels will be performed for %d iterations.\n", repeats);
-
-  printf(HLINE);
 
   GUPSDeviceArray dev_indices("indices", indicesCount);
   GUPSDeviceArray dev_data("data", dataCount);
@@ -92,7 +79,7 @@ int run_benchmark(const GUPSIndex indicesCount, const GUPSIndex dataCount,
 
   double gupsTime = 0.0;
 
-  printf("Initializing Views...\n");
+//  printf("Initializing Views...\n");
 
 #if defined(KOKKOS_HAVE_OPENMP)
   Kokkos::parallel_for(
@@ -116,7 +103,7 @@ int run_benchmark(const GUPSIndex indicesCount, const GUPSIndex dataCount,
   Kokkos::deep_copy(dev_indices, indices);
   double start;
 
-  printf("Starting benchmarking...\n");
+//printf("Starting benchmarking...\n");
 
   for (GUPSIndex k = 0; k < repeats; ++k) {
     randomize_indices(indices, dev_indices, data.extent(0));
@@ -129,43 +116,46 @@ int run_benchmark(const GUPSIndex indicesCount, const GUPSIndex dataCount,
   Kokkos::deep_copy(indices, dev_indices);
   Kokkos::deep_copy(data, dev_data);
 
-  printf(HLINE);
-  printf(
-      "GUP/s Random:      %18.6f\n",
+//  printf(HLINE);
+//    printf("- Elements:      %15" PRIu64 " (%12.4f MB)\n",
+//         static_cast<uint64_t>(dataCount),
+//         1.0e-6 * ((double)dataCount * (double)sizeof(int64_t)));
+//  printf("- Indices:       %15" PRIu64 " (%12.4f MB)\n",
+//         static_cast<uint64_t>(indicesCount),
+//         1.0e-6 * ((double)indicesCount * (double)sizeof(int64_t)));
+//  printf(" - Atomics:      %15s\n", (useAtomics ? "Yes" : "No"));
+//  printf("Benchmark kernels will be performed for %d iterations.\n", repeats);
+//
+  // datacount, datasize, idxcount, idxsize, gups
+  printf("Hopper,%lu,%.5f,%lu,%.5f,%s,%.5f\n",
+      static_cast<uint64_t>(dataCount),
+      1.0e-6 * ((double)dataCount * (double)sizeof(int64_t)),
+      static_cast<uint64_t>(indicesCount),
+      1.0e-6 * ((double)indicesCount * (double)sizeof(int64_t)),
+      (useAtomics ? "Yes" : "No"),
       (1.0e-9 * ((double)repeats) * (double)dev_indices.extent(0)) / gupsTime);
-  printf(HLINE);
 
   return 0;
 }
 
 int main(int argc, char* argv[]) {
-  printf(HLINE);
-  printf("Kokkos GUPS Benchmark\n");
-  printf(HLINE);
+//printf(HLINE);
+  //printf("Kokkos GUPS Benchmark\n");
+  //printf(HLINE);
 
   srand48(1010101);
 
   Kokkos::initialize(argc, argv);
 
   int64_t indices = 8192;
-  int64_t data    = 33554432;
+  int64_t data    = 33554432; //256MB
   int64_t repeats = 10;
   bool useAtomics = false;
-
-  for (int i = 1; i < argc; ++i) {
-    if (strcmp(argv[i], "--indices") == 0) {
-      indices = std::atoll(argv[i + 1]);
-      ++i;
-    } else if (strcmp(argv[i], "--data") == 0) {
-      data = std::atoll(argv[i + 1]);
-      ++i;
-    } else if (strcmp(argv[i], "--repeats") == 0) {
-      repeats = std::atoll(argv[i + 1]);
-      ++i;
-    } else if (strcmp(argv[i], "--atomics") == 0) {
-      useAtomics = true;
-    }
-  }
+  
+  indices = argc > 1 ? atoi(argv[1]) : indices;
+  data = argc > 2 ? atoi(argv[2]):data;
+  repeats = argc > 3 ? atoi (argv[3]):data;	  
+  useAtomics = argc > 4 ? atoi (argv[4]):useAtomics;
 
   const int rc = run_benchmark(indices, data, repeats, useAtomics);
 
