@@ -36,7 +36,6 @@ using GUPSIndex = int;
 double now() {
   struct timeval now;
   gettimeofday(&now, nullptr);
-
   return (double)now.tv_sec + ((double)now.tv_usec * 1.0e-6);
 }
 
@@ -45,29 +44,79 @@ void randomize_indices(GUPSHostArray& indices, GUPSDeviceArray& dev_indices,
   for (GUPSIndex i = 0; i < indices.extent(0); ++i) {
     indices[i] = lrand48() % dataCount;
   }
-
   Kokkos::deep_copy(dev_indices, indices);
 }
 
 void run_gups(GUPSDeviceArray& indices, GUPSDeviceArray& data,
-              const int64_t datum, const bool performAtomics) {
-  if (performAtomics) {
-    Kokkos::parallel_for(
-        "bench-gups-atomic", indices.extent(0),
-        KOKKOS_LAMBDA(const GUPSIndex i) {
-          Kokkos::atomic_fetch_xor(&data[indices[i]], datum);
-        });
-  } else {
-    Kokkos::parallel_for(
-        "bench-gups-non-atomic", indices.extent(0),
-        KOKKOS_LAMBDA(const GUPSIndex i) { data[indices[i]] ^= datum; });
-  }
+              const int64_t datum, const bool performAtomics, const int64_t num_teams,  const int64_t team_size, const int64_t vec_len) {
 
+  auto policy =
+      Kokkos::TeamPolicy<>(num_teams, team_size, vec_len);
+  using team_t = Kokkos::TeamPolicy<>::member_type;
+
+  if (performAtomics) {
+//    Kokkos::parallel_for(
+//        "bench-gups-atomic",  indices.extent(0),
+//        KOKKOS_LAMBDA(const GUPSIndex i) {
+//          Kokkos::atomic_fetch_xor(&data[indices[i]], datum);
+//       });
+//
+  const int64_t iters_per_team = indices.extent(0) / num_teams;
+  const int64_t iters_per_thread= iters_per_team / team_size;
+
+  Kokkos::parallel_for(
+    "bench-gups-non-atomic", policy,
+    KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type &team) {
+      const int64_t first_i = team.league_rank() * iters_per_team;
+      const int64_t last_i  = first_i + iters_per_team < indices.extent(0)
+                                     ? first_i + iters_per_team
+                                     : indices.extent(0);
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, first_i, last_i), [&](const int64_t j){
+        const int64_t first_thread_i = team.team_rank() * iters_per_thread;
+        const int64_t last_thread_i  = first_thread_i + iters_per_thread< last_i
+                                     ? first_thread_i + iters_per_thread
+                                     : last_i;
+              Kokkos::parallel_for(
+              Kokkos::ThreadVectorRange(team,last_thread_i), [=](const int64_t i) {
+                Kokkos::atomic_fetch_xor(&data[indices[first_thread_i + i]], datum);
+              });
+          });
+      });
+  } else {
+//    Kokkos::parallel_for(
+//      "bench-gups-non-atomic", indices.extent(0),
+//      KOKKOS_LAMBDA(const GUPSIndex i) { data[indices[i]] ^= datum; });
+//
+//        
+
+  const int64_t iters_per_team = indices.extent(0) / num_teams;
+  const int64_t iters_per_thread= iters_per_team / team_size;
+
+  Kokkos::parallel_for(
+    "bench-gups-non-atomic", policy,
+    KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type &team) {
+      const int64_t first_i = team.league_rank() * iters_per_team;
+      const int64_t last_i  = first_i + iters_per_team < indices.extent(0)
+                                     ? first_i + iters_per_team
+                                     : indices.extent(0);
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, first_i, last_i), [&](const int64_t j){
+        const int64_t first_thread_i = team.team_rank() * iters_per_thread;
+        const int64_t last_thread_i  = first_thread_i + iters_per_thread< last_i
+                                     ? first_thread_i + iters_per_thread
+                                     : last_i;
+              Kokkos::parallel_for(
+              Kokkos::ThreadVectorRange(team,last_thread_i), [=](const int64_t i) {
+                Kokkos::atomic_fetch_xor(&data[indices[first_thread_i + i]], datum);
+              });
+          });
+      });
+
+  }
   Kokkos::fence();
 }
 
 int run_benchmark(const GUPSIndex indicesCount, const GUPSIndex dataCount,
-                  const int repeats, const bool useAtomics) {
+                  const int repeats, const bool useAtomics, const int64_t num_teams, const int64_t team_size, const int64_t veclen) {
 
 
   GUPSDeviceArray dev_indices("indices", indicesCount);
@@ -103,13 +152,11 @@ int run_benchmark(const GUPSIndex indicesCount, const GUPSIndex dataCount,
   Kokkos::deep_copy(dev_indices, indices);
   double start;
 
-//printf("Starting benchmarking...\n");
-
   for (GUPSIndex k = 0; k < repeats; ++k) {
     randomize_indices(indices, dev_indices, data.extent(0));
 
     start = now();
-    run_gups(dev_indices, dev_data, datum, useAtomics);
+    run_gups(dev_indices, dev_data, datum, useAtomics,num_teams, team_size, veclen);
     gupsTime += now() - start;
   }
 
@@ -127,7 +174,10 @@ int run_benchmark(const GUPSIndex indicesCount, const GUPSIndex dataCount,
 //  printf("Benchmark kernels will be performed for %d iterations.\n", repeats);
 //
   // datacount, datasize, idxcount, idxsize, gups
-  printf("Hopper,%lu,%.5f,%lu,%.5f,%s,%.5f\n",
+  printf("Hopper,%lu,%lu,%lu,%lu,%.5f,%lu,%.5f,%s,%.5f\n",
+      num_teams,
+      team_size,
+      veclen,
       static_cast<uint64_t>(dataCount),
       1.0e-6 * ((double)dataCount * (double)sizeof(int64_t)),
       static_cast<uint64_t>(indicesCount),
@@ -139,25 +189,27 @@ int run_benchmark(const GUPSIndex indicesCount, const GUPSIndex dataCount,
 }
 
 int main(int argc, char* argv[]) {
-//printf(HLINE);
-  //printf("Kokkos GUPS Benchmark\n");
-  //printf(HLINE);
-
   srand48(1010101);
-
+  
   Kokkos::initialize(argc, argv);
-
+  
   int64_t indices = 8192;
   int64_t data    = 33554432; //256MB
   int64_t repeats = 10;
+  int64_t nTeams  = 32;
+  int64_t nThrPerTeam = 32;
+  int64_t vlen = 1;
   bool useAtomics = false;
   
-  indices = argc > 1 ? atoi(argv[1]) : indices;
+    indices = argc > 1 ? atoi(argv[1]) : indices;
   data = argc > 2 ? atoi(argv[2]):data;
   repeats = argc > 3 ? atoi (argv[3]):data;	  
   useAtomics = argc > 4 ? atoi (argv[4]):useAtomics;
+  nTeams = argc > 5 ? atoi (argv[5]):nTeams;
+  nThrPerTeam= argc > 6 ? atoi (argv[6]): nThrPerTeam;
+  vlen = argc > 7 ? atoi (argv[7]): vlen;
 
-  const int rc = run_benchmark(indices, data, repeats, useAtomics);
+  const int rc = run_benchmark(indices, data, repeats, useAtomics,nTeams,nThrPerTeam, vlen);
 
   Kokkos::finalize();
 
