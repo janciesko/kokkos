@@ -70,6 +70,7 @@ bool equal(const ExecutionSpace& ex,
            const ::Kokkos::View<DataType2, Properties2...>& view2) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+  Impl::expect_matching_extents(view1, view2);
 
   if (view1.extent(0) != view2.extent(0)) {
     return false;
@@ -90,6 +91,7 @@ bool equal(const std::string& label, const ExecutionSpace& ex,
            const ::Kokkos::View<DataType2, Properties2...>& view2) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+  Impl::expect_matching_extents(view1, view2);
 
   if (view1.extent(0) != view2.extent(0)) {
     return false;
@@ -110,6 +112,7 @@ bool equal(const ExecutionSpace& ex,
            BinaryPredicateType predicate) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+  Impl::expect_matching_extents(view1, view2);
 
   if (view1.extent(0) != view2.extent(0)) {
     return false;
@@ -131,6 +134,7 @@ bool equal(const std::string& label, const ExecutionSpace& ex,
            BinaryPredicateType predicate) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+  Impl::expect_matching_extents(view1, view2);
 
   if (view1.extent(0) != view2.extent(0)) {
     return false;
@@ -233,6 +237,7 @@ KOKKOS_FUNCTION bool equal(
     const ::Kokkos::View<DataType2, Properties2...>& view2) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+  Impl::expect_matching_extents(view1, view2);
 
   if (view1.extent(0) != view2.extent(0)) {
     return false;
@@ -254,6 +259,7 @@ KOKKOS_FUNCTION bool equal(
     BinaryPredicateType predicate) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+  Impl::expect_matching_extents(view1, view2);
 
   if (view1.extent(0) != view2.extent(0)) {
     return false;
