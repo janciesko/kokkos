@@ -193,21 +193,30 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   using raw_allocation_value_type = std::remove_pointer_t<pointer_type>;
 
  public:
-  using scalar_array_type       = typename traits::scalar_array_type;
-  using const_scalar_array_type = typename traits::const_scalar_array_type;
-  using non_const_scalar_array_type =
-      typename traits::non_const_scalar_array_type;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  using scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use data_type instead.") = data_type;
+  using const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use const_data_type instead.") = const_data_type;
+  using non_const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use non_const_data_type instead.") = non_const_data_type;
+#endif
 
   // typedefs from BasicView
   using typename base_t::mdspan_type;
   using reference_type = typename base_t::reference;
 
   //----------------------------------------
+  // Compatible view of a data type
+  using type = View<typename traits::data_type, typename traits::array_layout,
+                    typename traits::device_type, typename traits::hooks_policy,
+                    typename traits::memory_traits>;
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  //----------------------------------------
   // Compatible view of array of scalar types
-  using array_type =
-      View<typename traits::scalar_array_type, typename traits::array_layout,
-           typename traits::device_type, typename traits::hooks_policy,
-           typename traits::memory_traits>;
+  using array_type KOKKOS_DEPRECATED_WITH_COMMENT("Use type instead.") = type;
+#endif
 
   // Compatible view of const data type
   using const_type =
