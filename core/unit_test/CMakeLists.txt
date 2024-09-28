@@ -92,6 +92,7 @@ set(COMPILE_ONLY_SOURCES
     TestTeamPolicyCTAD.cpp
     TestTeamMDRangePolicyCTAD.cpp
     TestNestedReducerCTAD.cpp
+    view/TestBasicViewMDSpanConversion.cpp
     view/TestExtentsDatatypeConversion.cpp
 )
 
@@ -344,7 +345,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;OpenACC;HIP;SYCL)
     # detail tests for the mdspan based View
     set(${Tag}_VIEWSUPPORT)
     if(Kokkos_ENABLE_IMPL_MDSPAN)
-      foreach(Name ReferenceCountedAccessor ReferenceCountedDataHandle)
+      foreach(Name BasicView ReferenceCountedAccessor ReferenceCountedDataHandle)
         set(file ${dir}/Test${Tag}_View_${Name}.cpp)
         # Write to a temporary intermediate file and call configure_file to avoid
         # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
