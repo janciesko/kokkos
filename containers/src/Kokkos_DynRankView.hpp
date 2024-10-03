@@ -455,11 +455,11 @@ class DynRankView : private View<DataType*******, Properties...> {
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   using scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Use data_type instead .") = value_type;
+      "Use value_type instead.") = value_type;
   using const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Use const_data_type instead .") = const_value_type;
+      "Use const_value_type instead.") = const_value_type;
   using non_const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Use non_const_data_type instead .") = non_const_value_type;
+      "Use non_const_value_type instead.") = non_const_value_type;
 #endif
   using specialize = typename view_type::specialize;
 
@@ -489,8 +489,7 @@ class DynRankView : private View<DataType*******, Properties...> {
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   /** \brief  Compatible view of array of scalar types */
-  using array_type KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Use Kokkos_DynRankView::type insted.") =
+  using array_type KOKKOS_DEPRECATED_WITH_COMMENT("Use type instead.") =
       DynRankView<
           typename drvtraits::data_type, typename drvtraits::array_layout,
           typename drvtraits::device_type, typename drvtraits::memory_traits>;
