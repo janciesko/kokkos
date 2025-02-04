@@ -17,9 +17,15 @@
 template <class Scalar>
 struct Run<Scalar, UNROLL, STRIDE> {
   static void run(int N, int K, int R, int F, int T, int S, int Ba, int I) {
-    Kokkos::View<Scalar** [STRIDE], Kokkos::LayoutRight> A("A", N, K);
-    Kokkos::View<Scalar** [STRIDE], Kokkos::LayoutRight> B("B", N, K);
-    Kokkos::View<Scalar** [STRIDE], Kokkos::LayoutRight> C("C", N, K);
+    Kokkos::View<Scalar*** [STRIDE], Kokkos::LayoutRight> A("A", 4, N/4, K);
+    Kokkos::View<Scalar*** [STRIDE], Kokkos::LayoutRight> B("B", 4, N/4, K);
+    Kokkos::View<Scalar*** [STRIDE], Kokkos::LayoutRight> C("C", 4, N/4, K);
+
+
+  using TEST_EXECSPACE =  Kokkos::DefaultExecutionSpace;
+  TEST_EXECSPACE space;
+  std::vector<TEST_EXECSPACE> execution_space_instances =
+      Kokkos::Experimental::partition_space(space, 1,1,1,1);
 
     Kokkos::deep_copy(A, Scalar(1.5));
     Kokkos::deep_copy(B, Scalar(2.5));
@@ -27,16 +33,19 @@ struct Run<Scalar, UNROLL, STRIDE> {
 
     Kokkos::Timer timer;
     for (int iter = 0; iter < I; ++iter) {
+      for (int num_ex = 0; num_ex < 4; ++num_ex){
       Kokkos::parallel_for(
           "BenchmarkKernel",
-          Kokkos::TeamPolicy<>(N, T).set_scratch_size(0, Kokkos::PerTeam(S)),
+          Kokkos::TeamPolicy<>(execution_space_instances[num_ex],N/4, T)/*.set_scratch_size(0, Kokkos::PerTeam(S))*/,
           KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team) {
             const int n = team.league_rank();
+	   using uV_t = Kokkos::View<Scalar** [STRIDE], Kokkos::MemoryTraits<Kokkos::Unmanaged> >;
+//	   uV_t uV_A(&A(num_ex * (N/4),0,0));
             for (int r = 0; r < R; r++) {
               Kokkos::parallel_for(
-                  Kokkos::TeamThreadRange(team, 0, K), [&](const int& i) {
-                    Scalar a1      = A(n, i, 0);
-                    const Scalar b = B(n, i, 0);
+                  Kokkos::TeamVectorRange(team, K), [&](const int& i) {
+                    Scalar a1      = A(num_ex, n, i, 0);
+                    const Scalar b = B(num_ex, n, i, 0);
 #if (UNROLL > 1)
                     Scalar a2 = a1 * static_cast<Scalar>(1.3);
 #endif
@@ -84,32 +93,33 @@ struct Run<Scalar, UNROLL, STRIDE> {
 #endif
                     }
 #if (UNROLL == 1)
-                    C(n, i, 0) = a1;
+                    C(num_ex, n, i, 0) = a1;
 #endif
 #if (UNROLL == 2)
-                    C(n, i, 0) = a1 + a2;
+                    C(num_ex,  n, i, 0) = a1 + a2;
 #endif
 #if (UNROLL == 3)
-                    C(n, i, 0) = a1 + a2 + a3;
+                    C(num_ex,n , i, 0) = a1 + a2 + a3;
 #endif
 #if (UNROLL == 4)
-                    C(n, i, 0) = a1 + a2 + a3 + a4;
+                    C(num_ex, n,i, 0) = a1 + a2 + a3 + a4;
 #endif
 #if (UNROLL == 5)
-                    C(n, i, 0) = a1 + a2 + a3 + a4 + a5;
+                    C(num_ex, n,i, 0) = a1 + a2 + a3 + a4 + a5;
 #endif
 #if (UNROLL == 6)
-                    C(n, i, 0) = a1 + a2 + a3 + a4 + a5 + a6;
+                    C(num_ex, n, i, 0) = a1 + a2 + a3 + a4 + a5 + a6;
 #endif
 #if (UNROLL == 7)
-                    C(n, i, 0) = a1 + a2 + a3 + a4 + a5 + a6 + a7;
+                    C(num_ex, n, i, 0) = a1 + a2 + a3 + a4 + a5 + a6 + a7;
 #endif
 #if (UNROLL == 8)
-                    C(n, i, 0) = a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8;
+                    C(num_ex, n, i, 0) = a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8;
 #endif
                   });
             }
           });
+    }
     }
     Kokkos::fence();
     double seconds = timer.seconds() / static_cast<double>(I);
@@ -125,3 +135,4 @@ struct Run<Scalar, UNROLL, STRIDE> {
         Ba == 2 ? "GiB/s" : "GB/s", 1.e-9 * flops / seconds);
   }
 };
+
