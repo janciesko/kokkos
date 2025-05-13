@@ -26,10 +26,10 @@ namespace Kokkos::Impl {
 // takes no argument.
 template <typename Functor>
 struct ThenWrapper {
-  Functor functor;
+  Functor m_functor;
   template <typename T>
   KOKKOS_FUNCTION void operator()(const T) const {
-    functor();
+    m_functor();
   }
 };
 
