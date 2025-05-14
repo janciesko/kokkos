@@ -143,6 +143,13 @@ struct HostMirror {
   using is_space = typename Kokkos::is_space<S>;
   static_assert(is_space());
 
+#if defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY) || \
+    defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
+  constexpr static bool has_unified_mem_space = true;
+#else
+  constexpr static bool has_unified_mem_space = false;
+#endif
+
  private:
   // If input execution space can access HostSpace then keep it.
   // Example: Kokkos::OpenMP can access, Kokkos::Cuda cannot
@@ -163,11 +170,17 @@ struct HostMirror {
   using Device = std::conditional_t<
       keep_exe && keep_mem,
       Kokkos::Device<typename S::execution_space, typename S::memory_space>,
-      std::conditional_t<keep_mem,
-                         Kokkos::Device<Kokkos::HostSpace::execution_space,
-                                        typename S::memory_space>,
-                         Kokkos::Device<Kokkos::HostSpace::execution_space,
-                                        Kokkos::HostSpace::memory_space>>>;
+      std::conditional_t<
+          keep_mem,
+          // For unified mem devices, still return HostSpace
+          std::conditional_t<
+              has_unified_mem_space,
+              Kokkos::Device<Kokkos::HostSpace::execution_space,
+                             typename Kokkos::HostSpace::memory_space>,
+              Kokkos::Device<Kokkos::HostSpace::execution_space,
+                             typename S::memory_space>>,
+          Kokkos::Device<Kokkos::HostSpace::execution_space,
+                         Kokkos::HostSpace::memory_space>>>;
 
   using execution_space = typename Device::execution_space;
   using memory_space    = typename Device::memory_space;
