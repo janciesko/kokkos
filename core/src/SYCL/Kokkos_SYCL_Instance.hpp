@@ -135,11 +135,12 @@ class SYCLInternal {
       fence();
       reserve(sizeof(T));
       if constexpr (sycl::usm::alloc::device == Kind) {
-        std::memcpy(static_cast<void*>(m_staging.get()), std::addressof(t),
-                    sizeof(T));
+        std::memcpy(static_cast<void*>(m_staging.get()),
+                    static_cast<const void*>(std::addressof(t)), sizeof(T));
         m_copy_event = m_q->memcpy(m_data, m_staging.get(), sizeof(T));
       } else
-        std::memcpy(m_data, std::addressof(t), sizeof(T));
+        std::memcpy(static_cast<void*>(m_data),
+                    static_cast<const void*>(std::addressof(t)), sizeof(T));
       return *reinterpret_cast<T*>(m_data);
     }
 

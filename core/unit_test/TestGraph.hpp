@@ -416,20 +416,14 @@ TEST_F(TEST_CATEGORY_FIXTURE(graph), empty_graph) {
   ex.fence();
 }
 
-template <typename ViewType>
-struct ForceGlobalLaunchFunctor {
+template <typename ViewType, size_t Count>
+struct SizedFunctor {
  public:
-  static constexpr size_t count =
-#if defined(KOKKOS_ENABLE_CUDA)
-      Kokkos::Impl::CudaTraits::ConstantMemoryUsage +
-#elif defined(KOKKOS_ENABLE_HIP)
-      Kokkos::Impl::HIPTraits::ConstantMemoryUsage +
-#endif
-      1;
+  static constexpr size_t count = Count;
 
   ViewType data;
 
-  ForceGlobalLaunchFunctor(ViewType data_) : data(std::move(data_)) {}
+  SizedFunctor(ViewType data_) : data(std::move(data_)) {}
 
   template <typename T>
   KOKKOS_FUNCTION void operator()(const T) const {
@@ -452,10 +446,17 @@ TEST_F(TEST_CATEGORY_FIXTURE(graph), force_global_launch) {
 #if defined(KOKKOS_ENABLE_CUDA) || \
     (defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_IMPL_HIP_NATIVE_GRAPH))
   }
+
   using value_t   = int;
   using view_t    = Kokkos::View<value_t, TEST_EXECSPACE,
                               Kokkos::MemoryTraits<Kokkos::Atomic>>;
-  using functor_t = ForceGlobalLaunchFunctor<view_t>;
+  using functor_t = SizedFunctor<view_t,
+#if defined(KOKKOS_ENABLE_CUDA)
+                                 Kokkos::Impl::CudaTraits::ConstantMemoryUsage +
+#elif defined(KOKKOS_ENABLE_HIP)
+                                 Kokkos::Impl::HIPTraits::ConstantMemoryUsage +
+#endif
+                                     1>;
 
   const std::string kernel_name = "Let's make it a huge kernel";
   const std::string alloc_label =
@@ -521,6 +522,40 @@ TEST_F(TEST_CATEGORY_FIXTURE(graph), force_global_launch) {
 
   listen_tool_events(Config::DisableAll());
 #endif
+}
+
+// Ensure that the launch mechanism chosen for a given functor size works.
+template <size_t PaddingSize, typename ExecSpace>
+void test_sized_functor_launch(const ExecSpace& exec) {
+  using view_t =
+      Kokkos::View<int, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic>>;
+  using functor_t = SizedFunctor<view_t, PaddingSize>;
+
+  const size_t range_end = 10;
+
+  const std::string kernel_name = "Let's make it a kernel of a given size";
+
+  view_t data(Kokkos::view_alloc("witness", exec));
+
+  auto graph = Kokkos::Experimental::create_graph(exec, [&](const auto& root) {
+    auto node = root.then_parallel_for(
+        kernel_name, Kokkos::RangePolicy<ExecSpace>(exec, 0, range_end),
+        functor_t(data));
+  });
+
+  graph.submit(exec);
+  ASSERT_TRUE(contains(exec, data, range_end));
+}
+
+// Test that launching kernels of certain sizes works. The sizes are chosen so
+// as to exercise the different launch mechanisms on Cuda and HIP. Hence, these
+// sizes may require updating if the internals of the launch mechanisms change.
+TEST_F(TEST_CATEGORY_FIXTURE(graph), sized_functor_launch) {
+  const TEST_EXECSPACE exec{};
+
+  test_sized_functor_launch<100>(exec);
+  test_sized_functor_launch<6000>(exec);
+  test_sized_functor_launch<100000>(exec);
 }
 
 // Ensure that an empty graph on the default host execution space
