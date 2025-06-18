@@ -32,6 +32,7 @@ static_assert(false,
 #include <Kokkos_Parallel_Reduce.hpp>
 #include <impl/Kokkos_GraphImpl_Utilities.hpp>
 #include <impl/Kokkos_GraphImpl.hpp>  // GraphAccess
+#include <impl/Kokkos_GraphNodeThenPolicy.hpp>
 
 #include <memory>  // std::shared_ptr
 
@@ -229,23 +230,60 @@ class GraphNodeRef {
 
   // TODO We should do better than a p-for (that uses registers, heavier).
   //      This should "just" launch the function on device with our driver.
-  template <typename Label, typename Functor,
-            typename = std::enable_if_t<std::is_invocable_r_v<
-                void, const Kokkos::Impl::remove_cvref_t<Functor>>>>
-  auto then(Label&& label, const ExecutionSpace& exec,
+  template <typename Label, typename Policy, typename Functor,
+            std::enable_if_t<
+                std::is_invocable_r_v<
+                    void, const Kokkos::Impl::remove_cvref_t<Functor>> &&
+                    Kokkos::Impl::is_view_label_v<
+                        Kokkos::Impl::remove_cvref_t<Label>> &&
+                    Kokkos::Impl::is_specialization_of_v<Policy, ThenPolicy>,
+                int> = 0>
+  auto then(Label&& label, const ExecutionSpace& exec, Policy&& policy,
             Functor&& functor) const {
     using next_kernel_t =
         Kokkos::Impl::GraphNodeThenImpl<ExecutionSpace,
+                                        Kokkos::Impl::remove_cvref_t<Policy>,
                                         Kokkos::Impl::remove_cvref_t<Functor>>;
-    return this->_then_kernel(next_kernel_t{std::forward<Label>(label), exec,
-                                            std::forward<Functor>(functor)});
+    return this->_then_kernel(next_kernel_t(std::forward<Label>(label), exec,
+                                            std::forward<Policy>(policy),
+                                            std::forward<Functor>(functor)));
   }
 
+  // Overload for a label.
   template <typename Label, typename Functor,
-            typename = std::enable_if_t<std::is_invocable_r_v<
-                void, const Kokkos::Impl::remove_cvref_t<Functor>>>>
+            std::enable_if_t<Kokkos::Impl::is_view_label_v<
+                                 Kokkos::Impl::remove_cvref_t<Label>>,
+                             int> = 0>
   auto then(Label&& label, Functor&& functor) const {
     return this->then(std::forward<Label>(label), ExecutionSpace{},
+                      ThenPolicy{}, std::forward<Functor>(functor));
+  }
+
+  // Overload for a policy.
+  template <
+      typename Policy, typename Functor,
+      std::enable_if_t<Kokkos::Impl::is_specialization_of_v<
+                           Kokkos::Impl::remove_cvref_t<Policy>, ThenPolicy>,
+                       int> = 0>
+  auto then(Policy&& policy, Functor&& functor) const {
+    return this->then(std::string{}, ExecutionSpace{},
+                      std::forward<Policy>(policy),
+                      std::forward<Functor>(functor));
+  }
+
+  // Overload for a label and a policy.
+  template <typename Label, typename Policy, typename Functor>
+  auto then(Label&& label, Policy&& policy, Functor&& functor) const {
+    return this->then(std::forward<Label>(label), ExecutionSpace{},
+                      std::forward<Policy>(policy),
+                      std::forward<Functor>(functor));
+  }
+
+  // Overload without policy given.
+  template <typename Label, typename Functor>
+  auto then(Label&& label, const ExecutionSpace& exec,
+            Functor&& functor) const {
+    return this->then(std::forward<Label>(label), exec, ThenPolicy{},
                       std::forward<Functor>(functor));
   }
 

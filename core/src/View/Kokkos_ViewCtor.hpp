@@ -67,6 +67,9 @@ struct is_view_label<char[N]> : public std::true_type {};
 template <unsigned N>
 struct is_view_label<const char[N]> : public std::true_type {};
 
+template <typename T>
+constexpr bool is_view_label_v = is_view_label<T>::value;
+
 //----------------------------------------------------------------------------
 
 template <typename... P>
