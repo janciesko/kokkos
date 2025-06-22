@@ -213,3 +213,79 @@ void test_accessor_from_mapping() {
 TEST(TEST_CATEGORY, view_customization_accessor_from_mapping) {
   test_accessor_from_mapping();
 }
+
+// This tests the ability to pass in the accessor arg
+// as an additional integral argument to constructor and shmem_size
+TEST(TEST_CATEGORY, view_customization_extra_int_arg) {
+  // Rank 0
+  {
+    using view_t = Kokkos::View<Foo::BarStrided, TEST_EXECSPACE>;
+    view_t a("A", 5);
+    ASSERT_EQ(a.accessor().size, size_t(5));
+    ASSERT_EQ(a.accessor().stride, size_t(1));
+    view_t b(a.data(), 5);
+    ASSERT_EQ(b.accessor().size, size_t(5));
+    ASSERT_EQ(b.accessor().stride, size_t(1));
+    size_t shmem               = view_t::shmem_size(5);
+    size_t expected_shmem_size = 5lu * sizeof(double) + sizeof(double);
+    ASSERT_EQ(shmem, expected_shmem_size);
+  }
+  // Rank 3
+  {
+    using view_t = Kokkos::View<Foo::BarStrided***, TEST_EXECSPACE>;
+    view_t a("A", 3, 7, 11, 5);
+    ASSERT_EQ(a.accessor().size, size_t(5));
+    ASSERT_EQ(a.accessor().stride, size_t(3 * 7 * 11));
+    view_t b(a.data(), 3, 7, 11, 5);
+    ASSERT_EQ(b.accessor().size, size_t(5));
+    ASSERT_EQ(b.accessor().stride, size_t(3 * 7 * 11));
+    size_t shmem = view_t::shmem_size(3, 7, 11, 5);
+    size_t expected_shmem_size =
+        3lu * 7lu * 11lu * 5lu * sizeof(double) + sizeof(double);
+    ASSERT_EQ(shmem, expected_shmem_size);
+  }
+  // Rank 6
+  {
+    using view_t = Kokkos::View<Foo::BarStrided******, TEST_EXECSPACE>;
+    view_t a("A", 2, 3, 2, 7, 2, 11, 5);
+    ASSERT_EQ(a.accessor().size, size_t(5));
+    ASSERT_EQ(a.accessor().stride, size_t(8 * 3 * 7 * 11));
+    view_t b(a.data(), 2, 3, 2, 7, 2, 11, 5);
+    ASSERT_EQ(b.accessor().size, size_t(5));
+    ASSERT_EQ(b.accessor().stride, size_t(8 * 3 * 7 * 11));
+    size_t shmem = view_t::shmem_size(2, 3, 2, 7, 2, 11, 5);
+    size_t expected_shmem_size =
+        2lu * 3lu * 2lu * 7lu * 2lu * 11lu * 5lu * sizeof(double) +
+        sizeof(double);
+    ASSERT_EQ(shmem, expected_shmem_size);
+  }
+  // Rank 3
+  {
+    using view_t = Kokkos::View<Foo::BarStrided** [11], TEST_EXECSPACE>;
+    view_t a("A", 3, 7, 11, 5);
+    ASSERT_EQ(a.accessor().size, size_t(5));
+    ASSERT_EQ(a.accessor().stride, size_t(3 * 7 * 11));
+    view_t b(a.data(), 3, 7, 11, 5);
+    ASSERT_EQ(b.accessor().size, size_t(5));
+    ASSERT_EQ(b.accessor().stride, size_t(3 * 7 * 11));
+    size_t shmem = view_t::shmem_size(3, 7, 5);
+    size_t expected_shmem_size =
+        3lu * 7lu * 11lu * 5lu * sizeof(double) + sizeof(double);
+    ASSERT_EQ(shmem, expected_shmem_size);
+  }
+  // Rank 6
+  {
+    using view_t = Kokkos::View<Foo::BarStrided***** [11], TEST_EXECSPACE>;
+    view_t a("A", 2, 3, 2, 7, 2, 11, 5);
+    ASSERT_EQ(a.accessor().size, size_t(5));
+    ASSERT_EQ(a.accessor().stride, size_t(8 * 3 * 7 * 11));
+    view_t b(a.data(), 2, 3, 2, 7, 2, 11, 5);
+    ASSERT_EQ(b.accessor().size, size_t(5));
+    ASSERT_EQ(b.accessor().stride, size_t(8 * 3 * 7 * 11));
+    size_t shmem = view_t::shmem_size(2, 3, 2, 7, 2, 5);
+    size_t expected_shmem_size =
+        2lu * 3lu * 2lu * 7lu * 2lu * 11lu * 5lu * sizeof(double) +
+        sizeof(double);
+    ASSERT_EQ(shmem, expected_shmem_size);
+  }
+}
