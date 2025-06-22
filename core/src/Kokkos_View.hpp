@@ -192,6 +192,10 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   using pointer_type = decltype(Impl::ptr_from_data_handle(
       std::declval<typename base_t::data_handle_type>()));
 
+ private:
+  using raw_allocation_value_type = std::remove_pointer_t<pointer_type>;
+
+ public:
   using scalar_array_type       = typename traits::scalar_array_type;
   using const_scalar_array_type = typename traits::const_scalar_array_type;
   using non_const_scalar_array_type =
@@ -667,7 +671,9 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
 
 #ifndef KOKKOS_ENABLE_CXX17
   template <class P, class... Args>
-    requires(std::is_convertible_v<P, pointer_type>)
+    requires(!std::is_null_pointer_v<P> &&
+             std::is_constructible_v<typename base_t::data_handle_type, P> &&
+             sizeof...(Args) != rank() + 1)
   KOKKOS_FUNCTION View(P ptr_, Args... args)
       : View(Kokkos::view_wrap(static_cast<pointer_type>(ptr_)), args...) {}
 
@@ -691,7 +697,9 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   // NOLINTBEGIN(modernize-type-traits)
   template <class P, class... Args,
             std::enable_if_t<!std::is_null_pointer_v<P> &&
-                                 std::is_convertible_v<P, pointer_type>,
+                                 std::is_constructible_v<
+                                     typename base_t::data_handle_type, P> &&
+                                 sizeof...(Args) != rank() + 1,
                              size_t> = 0ul>
   // NOLINTEND(modernize-type-traits)
   KOKKOS_FUNCTION View(P ptr_, Args... args)
@@ -775,23 +783,57 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
                        typename traits::array_layout> const& arg_layout)
       : View(Impl::ViewCtorProp<std::string>(arg_label), arg_layout) {}
 
-  // Allocate label and layout, must disambiguate from subview constructor.
-  explicit View(const std::string& arg_label,
-                const size_t arg_N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                const size_t arg_N1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                const size_t arg_N2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                const size_t arg_N3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                const size_t arg_N4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                const size_t arg_N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                const size_t arg_N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                const size_t arg_N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : View(Impl::ViewCtorProp<std::string>(arg_label),
-             typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3,
-                                           arg_N4, arg_N5, arg_N6, arg_N7)) {
-    static_assert(traits::array_layout::is_extent_constructible,
-                  "Layout is not constructible from extent arguments. Use "
-                  "overload taking a layout object instead.");
+  template <class... Args>
+  View(const std::enable_if_t<(sizeof...(Args) != rank() + 1) &&
+                                  (std::is_constructible_v<size_t, Args> &&
+                                   ... && true),
+                              std::string>& arg_label,
+       const Args... args)
+      : View(Impl::ViewCtorProp<std::string>(arg_label), args...) {}
+
+ private:
+  // Special thing for Sacado taking rank()+1 integers, where the last integer
+  // is the FAD dimension
+  template <class... Args, size_t... Idx>
+  static auto view_alloc_from_label_and_integrals(std::true_type,
+                                                  const std::string& arg_label,
+                                                  std::index_sequence<Idx...>,
+                                                  Args... args) {
+    return view_alloc(arg_label, Impl::AccessorArg_t{static_cast<size_t>(
+                                     ((Idx == rank() ? args : 0) + ... + 0))});
   }
+
+  template <class... Args, size_t... Idx>
+  static auto view_alloc_from_label_and_integrals(std::false_type,
+                                                  const std::string& arg_label,
+                                                  std::index_sequence<Idx...>,
+                                                  Args...) {
+    return view_alloc(arg_label);
+  }
+
+ public:
+  template <class... Args>
+  View(const std::enable_if_t<(sizeof...(Args) == rank() + 1) &&
+                                  (std::is_constructible_v<size_t, Args> &&
+                                   ... && true),
+                              std::string>& arg_label,
+       const Args... args)
+      : View(view_alloc_from_label_and_integrals(
+                 std::bool_constant<traits::impl_is_customized>(), arg_label,
+                 std::make_index_sequence<sizeof...(Args)>(), args...),
+             args...) {}
+
+  template <class... Args>
+  View(const std::enable_if_t<(sizeof...(Args) == rank() + 1) &&
+                                  (std::is_constructible_v<size_t, Args> &&
+                                   ... && true),
+                              pointer_type>& arg_ptr,
+       const Args... args)
+      : View(Kokkos::view_wrap(arg_ptr,
+                               Kokkos::Impl::AccessorArg_t{
+                                   Kokkos::Array<size_t, sizeof...(Args)>{
+                                       static_cast<size_t>(args)...}[rank()]}),
+             args...) {}
 
   //----------------------------------------
   // Memory span required to wrap these dimensions.
@@ -801,7 +843,7 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
     return Impl::mapping_from_array_layout<typename base_t::mapping_type>(
                layout)
                .required_span_size() *
-           sizeof(value_type);
+           sizeof(raw_allocation_value_type);
   }
 
   KOKKOS_FUNCTION
@@ -834,35 +876,61 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
     const size_t num_passed_args = Impl::count_valid_integers(
         arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7);
 
-    if (std::is_void_v<typename traits::specialize> &&
-        num_passed_args != rank_dynamic) {
-      Kokkos::abort(
-          "Kokkos::View::shmem_size() rank_dynamic != number of arguments.\n");
+    // Special case to cover sacado which passes in an extra integer
+    if (traits::impl_is_customized && num_passed_args == rank_dynamic + 1) {
+      size_t extra_dim = 0;
+      switch (rank_dynamic) {
+        case 0: extra_dim = arg_N0; break;
+        case 1: extra_dim = arg_N1; break;
+        case 2: extra_dim = arg_N2; break;
+        case 3: extra_dim = arg_N3; break;
+        case 4: extra_dim = arg_N4; break;
+        case 5: extra_dim = arg_N5; break;
+        case 6: extra_dim = arg_N6; break;
+        case 7: extra_dim = arg_N7; break;
+        default:
+          Kokkos::abort("This can't happen: rank_dynamic is smaller than 8");
+      }
+      return View::shmem_size(
+          typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3, arg_N4,
+                                        arg_N5, arg_N6, arg_N7),
+          extra_dim);
+    } else {
+      if (num_passed_args != rank_dynamic) {
+        Kokkos::abort(
+            "Kokkos::View::shmem_size() rank_dynamic != number of "
+            "arguments.\n");
+      }
+      return View::shmem_size(
+          typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3, arg_N4,
+                                        arg_N5, arg_N6, arg_N7),
+          1);
     }
+  }
 
-    return View::shmem_size(typename traits::array_layout(
-        arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7));
+  static KOKKOS_INLINE_FUNCTION size_t
+  shmem_size(typename traits::array_layout const& arg_layout) {
+    return shmem_size(arg_layout, 1);
   }
 
  private:
   // Want to be able to align to minimum scratch alignment or sizeof or alignof
   // elements
-  static constexpr size_t scratch_value_alignment =
-      max({sizeof(typename traits::value_type),
-           alignof(typename traits::value_type),
-           static_cast<size_t>(
-               traits::execution_space::scratch_memory_space::ALIGN)});
+  static constexpr size_t scratch_value_alignment = max(
+      {sizeof(raw_allocation_value_type), alignof(raw_allocation_value_type),
+       static_cast<size_t>(
+           traits::execution_space::scratch_memory_space::ALIGN)});
 
- public:
-  static KOKKOS_INLINE_FUNCTION size_t
-  shmem_size(typename traits::array_layout const& arg_layout) {
+  static KOKKOS_INLINE_FUNCTION size_t shmem_size(
+      typename traits::array_layout const& arg_layout, size_t extra_dim) {
     return Impl::mapping_from_array_layout<typename base_t::mapping_type>(
                arg_layout)
                    .required_span_size() *
-               sizeof(value_type) +
+               sizeof(raw_allocation_value_type) * extra_dim +
            scratch_value_alignment;
   }
 
+ public:
   explicit KOKKOS_INLINE_FUNCTION View(
       const typename traits::execution_space::scratch_memory_space& arg_space,
       const typename traits::array_layout& arg_layout)
