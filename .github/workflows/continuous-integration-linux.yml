@@ -146,7 +146,7 @@ jobs:
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_${{ matrix.backend }}=ON \
             -DKokkos_ENABLE_TESTS=ON \
-            -DKokkos_ENABLE_BENCHMARKS=ON \
+            -DKokkos_ENABLE_BENCHMARKS=${{ (matrix.cmake_build_type != 'Debug') && 'ON' || 'OFF' }} \
             -DKokkos_ENABLE_EXAMPLES=ON \
             -DKokkos_ENABLE_DEPRECATED_CODE_4=ON \
             -DKokkos_ENABLE_COMPILER_WARNINGS=ON \
