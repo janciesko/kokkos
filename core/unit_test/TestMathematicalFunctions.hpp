@@ -1952,6 +1952,11 @@ struct TestNextAfterHalf {
 };
 
 TEST(TEST_CATEGORY, mathematical_functions_nextafter_fp16) {
+#if defined(KOKKOS_ENABLE_CUDA) &&                         \
+    defined(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE) && \
+    defined(KOKKOS_COMPILER_CLANG)
+  GTEST_SKIP() << "FIXME internal compiler error for Clang+Cuda and RDC";
+#else
 #if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_MSVC)
   GTEST_SKIP() << "FIXME MSVC nextafter for half precision "
                   "not implemented yet";
@@ -1966,6 +1971,7 @@ TEST(TEST_CATEGORY, mathematical_functions_nextafter_fp16) {
   TestNextAfterHalf<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t>();
 #endif
   if (skipped) GTEST_SKIP() << "no 16-bit floating-point precision support";
+#endif
 #endif
 }
 #endif
