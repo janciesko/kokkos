@@ -783,13 +783,33 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
                        typename traits::array_layout> const& arg_layout)
       : View(Impl::ViewCtorProp<std::string>(arg_label), arg_layout) {}
 
+#ifdef KOKKOS_COMPILER_MSVC  // FIXME_MSVC
+  // MSVC had pack expansion issues with the condition inside the enable_if
+ private:
   template <class... Args>
-  View(const std::enable_if_t<(sizeof...(Args) != rank() + 1) &&
-                                  (std::is_constructible_v<size_t, Args> &&
-                                   ... && true),
-                              std::string>& arg_label,
+  static constexpr bool msvc_workaround_ctor_condition_1() {
+    size_t num_args = sizeof...(Args);
+    bool are_constructible =
+        (std::is_constructible_v<size_t, Args> && ... && true);
+    return (num_args != rank() + 1) && are_constructible;
+  }
+
+ public:
+#endif
+
+  template <class... Args>
+  View(std::enable_if_t<
+#ifndef KOKKOS_COMPILER_MSVC
+           ((sizeof...(Args)) != rank() + 1) &&
+               (std::is_constructible_v<size_t, Args> && ... && true),
+#else
+           msvc_workaround_ctor_condition_1<Args...>(),
+#endif
+           const std::string&>
+           arg_label,
        const Args... args)
-      : View(Impl::ViewCtorProp<std::string>(arg_label), args...) {}
+      : View(Impl::ViewCtorProp<std::string>(arg_label), args...) {
+  }
 
  private:
   // Special thing for Sacado taking rank()+1 integers, where the last integer
@@ -811,29 +831,52 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
     return view_alloc(arg_label);
   }
 
+#ifdef KOKKOS_COMPILER_MSVC  // FIXME_MSVC
+  // Same as above but checking for num_args equal to rank()+1
+  template <class... Args>
+  static constexpr bool msvc_workaround_ctor_condition_2() {
+    size_t num_args = sizeof...(Args);
+    bool are_constructible =
+        (std::is_constructible_v<size_t, Args> && ... && true);
+    return (num_args == rank() + 1) && are_constructible;
+  }
+#endif
+
  public:
   template <class... Args>
-  View(const std::enable_if_t<(sizeof...(Args) == rank() + 1) &&
-                                  (std::is_constructible_v<size_t, Args> &&
-                                   ... && true),
-                              std::string>& arg_label,
+  View(std::enable_if_t<
+#ifndef KOKKOS_COMPILER_MSVC
+           ((sizeof...(Args)) == rank() + 1) &&
+               (std::is_constructible_v<size_t, Args> && ... && true),
+#else
+           msvc_workaround_ctor_condition_2<Args...>(),
+#endif
+           const std::string&>
+           arg_label,
        const Args... args)
       : View(view_alloc_from_label_and_integrals(
                  std::bool_constant<traits::impl_is_customized>(), arg_label,
                  std::make_index_sequence<sizeof...(Args)>(), args...),
-             args...) {}
+             args...) {
+  }
 
   template <class... Args>
-  View(const std::enable_if_t<(sizeof...(Args) == rank() + 1) &&
-                                  (std::is_constructible_v<size_t, Args> &&
-                                   ... && true),
-                              pointer_type>& arg_ptr,
+  View(std::enable_if_t<
+#ifndef KOKKOS_COMPILER_MSVC
+           ((sizeof...(Args)) == rank() + 1) &&
+               (std::is_constructible_v<size_t, Args> && ... && true),
+#else
+           msvc_workaround_ctor_condition_2<Args...>(),
+#endif
+           const pointer_type&>
+           arg_ptr,
        const Args... args)
       : View(Kokkos::view_wrap(arg_ptr,
                                Kokkos::Impl::AccessorArg_t{
                                    Kokkos::Array<size_t, sizeof...(Args)>{
                                        static_cast<size_t>(args)...}[rank()]}),
-             args...) {}
+             args...) {
+  }
 
   //----------------------------------------
   // Memory span required to wrap these dimensions.
