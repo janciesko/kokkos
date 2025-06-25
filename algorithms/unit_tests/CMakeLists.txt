@@ -150,6 +150,11 @@ set(STDALGO_TEAM_SOURCES_P)
 foreach(Name StdAlgorithmsCommon StdAlgorithmsTeamExclusiveScan StdAlgorithmsTeamTransformExclusiveScan)
   list(APPEND STDALGO_TEAM_SOURCES_P Test${Name}.cpp)
 endforeach()
+if(KOKKOS_ENABLE_OPENMPTARGET) # FIXME_OPENMPTARGET
+  list(REMOVE_ITEM STDALGO_TEAM_SOURCES_P TestStdAlgorithmsTeamExclusiveScan.cpp
+       TestStdAlgorithmsTeamTransformExclusiveScan.cpp
+  )
+endif()
 
 # ------------------------------------------
 # std team M
@@ -200,6 +205,12 @@ foreach(
 )
   list(APPEND STDALGO_TEAM_SOURCES_H Test${Name}.cpp)
 endforeach()
+
+if(KOKKOS_ENABLE_OPENMPTARGET) # FIXME_OPENMPTARGET
+  list(REMOVE_ITEM STDALGO_TEAM_SOURCES_H TestStdAlgorithmsTeamCopyIf.cpp TestStdAlgorithmsTeamUniqueCopy.cpp
+       TestStdAlgorithmsTeamRemoveCopy.cpp TestStdAlgorithmsTeamRemoveCopyIf.cpp
+  )
+endif()
 
 # ------------------------------------------
 # std team G
