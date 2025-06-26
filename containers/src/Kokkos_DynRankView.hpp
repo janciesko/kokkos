@@ -885,15 +885,37 @@ class DynRankView : private View<DataType*******, Properties...> {
 #endif
 
  private:
+  // Need a host only and a host/device function to deal with labels.
   template <class... P>
   KOKKOS_FUNCTION auto attach_accessor_arg_if_needed(
-      const Kokkos::Impl::ViewCtorProp<P...>& arg_prop,
-      const typename traits::array_layout& layout) {
+      const Impl::ViewCtorProp<P...>& arg_prop,
+      std::enable_if_t<((!std::is_same_v<P, std::string>)&&...),
+                       const typename traits::array_layout&>
+          layout) {
     if constexpr (traits::impl_is_customized) {
       int r = 0;
       while (r < 7 && layout.dimension[r] != KOKKOS_INVALID_INDEX) r++;
-      return Impl::with_properties_if_unset(
-          arg_prop,
+
+      // Can't use with_properties_if_unset since its a host only function!
+      return view_wrap(
+          static_cast<const Impl::ViewCtorProp<void, P>&>(arg_prop).value...,
+          Impl::AccessorArg_t{r > 0 ? size_t(layout.dimension[r - 1]) : 0ul});
+    } else {
+      return arg_prop;
+    }
+  }
+  template <class... P>
+  auto attach_accessor_arg_if_needed(
+      const Impl::ViewCtorProp<P...>& arg_prop,
+      std::enable_if_t<(std::is_same_v<P, std::string> || ...),
+                       const typename traits::array_layout&>
+          layout) {
+    if constexpr (traits::impl_is_customized) {
+      int r = 0;
+      while (r < 7 && layout.dimension[r] != KOKKOS_INVALID_INDEX) r++;
+      // Can't use with_properties_if_unset since its a host only function!
+      return view_alloc(
+          static_cast<const Impl::ViewCtorProp<void, P>&>(arg_prop).value...,
           Impl::AccessorArg_t{r > 0 ? size_t(layout.dimension[r - 1]) : 0ul});
     } else {
       return arg_prop;
