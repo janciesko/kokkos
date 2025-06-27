@@ -808,7 +808,16 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
            const std::string&>
            arg_label,
        const Args... args)
+#ifdef KOKKOS_COMPILER_INTEL_LLVM  // FIXME_INTEL
+      // Eventually we want to get rid of the array_layout thing entirely.
+      // For now this avoids a bug in the intel compiler 2024.2, and 2025 tested
+      // that only happens with O2 or higher and makes some extents not being
+      // set See https://github.com/kokkos/kokkos/pull/8202
+      : View(Impl::ViewCtorProp<std::string>(arg_label),
+             typename traits::array_layout(args...)) {
+#else
       : View(Impl::ViewCtorProp<std::string>(arg_label), args...) {
+#endif
   }
 
  private:
@@ -854,10 +863,19 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
            const std::string&>
            arg_label,
        const Args... args)
-      : View(view_alloc_from_label_and_integrals(
-                 std::bool_constant<traits::impl_is_customized>(), arg_label,
-                 std::make_index_sequence<sizeof...(Args)>(), args...),
-             args...) {
+      : View(
+            view_alloc_from_label_and_integrals(
+                std::bool_constant<traits::impl_is_customized>(), arg_label,
+                std::make_index_sequence<sizeof...(Args)>(), args...),
+#ifdef KOKKOS_COMPILER_INTEL_LLVM  // FIXME_INTEL
+            // Eventually we want to get rid of the array_layout thing entirely.
+            // For now this avoids a bug in the intel compiler 2024.2, and 2025
+            // tested that only happens with O2 or higher and makes some extents
+            // not being set See https://github.com/kokkos/kokkos/pull/8202
+            typename traits::array_layout(args...)) {
+#else
+            args...) {
+#endif
   }
 
   template <class... Args>
@@ -871,11 +889,20 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
            const pointer_type&>
            arg_ptr,
        const Args... args)
-      : View(Kokkos::view_wrap(arg_ptr,
-                               Kokkos::Impl::AccessorArg_t{
-                                   Kokkos::Array<size_t, sizeof...(Args)>{
-                                       static_cast<size_t>(args)...}[rank()]}),
+      : View(
+            Kokkos::view_wrap(arg_ptr,
+                              Kokkos::Impl::AccessorArg_t{
+                                  Kokkos::Array<size_t, sizeof...(Args)>{
+                                      static_cast<size_t>(args)...}[rank()]}),
+#ifdef KOKKOS_COMPILER_INTEL_LLVM  // FIXME_INTEL
+            // Eventually we want to get rid of the array_layout thing entirely.
+            // For now this avoids a bug in the intel compiler 2024.2, and 2025
+            // tested that only happens with O2 or higher and makes some extents
+            // not being set See https://github.com/kokkos/kokkos/pull/8202
+            typename traits::array_layout(args...)) {
+#else
              args...) {
+#endif
   }
 
   //----------------------------------------
