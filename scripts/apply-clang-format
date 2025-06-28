@@ -27,7 +27,7 @@ if [ ! -f "scripts/apply-clang-format" ]; then
 fi
 
 echo "***   Running clang-format"
-git ls-files | grep "\.\(hpp\|cpp\|h\|cc\)$" | xargs ${CLANG_FORMAT_EXECUTABLE} -i
+git ls-files | grep "\.\(hpp\|cpp\|cppm\|h\|cc\)$" | xargs ${CLANG_FORMAT_EXECUTABLE} -i
 echo "***   Running clang-format - done"
 
 echo "***   Running trailing whitespaces check"
