@@ -129,9 +129,17 @@ struct DynRankDimTraits {
         layout.dimension[5] != unspecified ? layout.dimension[5] : 1,
         layout.dimension[6] != unspecified ? layout.dimension[6] : 1,
         layout.dimension[7] != unspecified ? layout.dimension[7] : unspecified);
-    // I need to propagade that extra dimension for Sacado
-    if constexpr (!std::is_same_v<Specialize, void>) {
-      new_layout.stride = layout.dimension[6];
+    // In order to have a valid LayoutRight stride when Sacado passes through
+    // extra integer arguments, we need to set it to the dimension[6] for the
+    // rank-7 view coming out of here. Only if the original layout was already
+    // rank-7 we can preserve the stride.
+    if constexpr (!std::is_same_v<Specialize, void> &&
+                  std::is_same_v<Layout, Kokkos::LayoutRight>) {
+      if (layout.dimension[6] != unspecified) {
+        new_layout.stride = layout.stride;
+      } else {
+        new_layout.stride = unspecified;
+      }
     } else {
       new_layout.stride = layout.stride;
     }
@@ -910,7 +918,8 @@ class DynRankView : private View<DataType*******, Properties...> {
       std::enable_if_t<(std::is_same_v<P, std::string> || ...),
                        const typename traits::array_layout&>
           layout) {
-    if constexpr (traits::impl_is_customized) {
+    if constexpr (traits::impl_is_customized &&
+                  !Impl::ViewCtorProp<P...>::has_accessor_arg) {
       int r = 0;
       while (r < 7 && layout.dimension[r] != KOKKOS_INVALID_INDEX) r++;
       // Can't use with_properties_if_unset since its a host only function!
