@@ -47,7 +47,7 @@ else()
   if(NOT DEFINED Kokkos_ENABLE_SERIAL)
     message(
       STATUS
-        "SERIAL backend is being turned on to ensure there is at least one Host space. To change this, you must enable another host execution space and configure with -DKokkos_ENABLE_SERIAL=OFF or change CMakeCache.txt"
+        "SERIAL backend is being turned on to ensure there is at least one Host space. To change this, you must enable another host execution space and configure with -DKokkos_ENABLE_SERIAL=OFF."
     )
   endif()
 endif()
