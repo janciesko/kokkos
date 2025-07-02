@@ -1258,29 +1258,32 @@ as_view_of_rank_n(
   return View<typename RankDataType<T, N>::type, Args...>(v.data(), layout);
 }
 
-template <typename Function, typename... Args>
-void apply_to_view_of_static_rank(Function&& f, DynRankView<Args...> a) {
-  switch (rank(a)) {
-    case 0: f(as_view_of_rank_n<0>(a)); break;
-    case 1: f(as_view_of_rank_n<1>(a)); break;
-    case 2: f(as_view_of_rank_n<2>(a)); break;
-    case 3: f(as_view_of_rank_n<3>(a)); break;
-    case 4: f(as_view_of_rank_n<4>(a)); break;
-    case 5: f(as_view_of_rank_n<5>(a)); break;
-    case 6: f(as_view_of_rank_n<6>(a)); break;
-    case 7: f(as_view_of_rank_n<7>(a)); break;
-    default:
-      KOKKOS_IF_ON_HOST(
-          Kokkos::abort(
-              std::string(
-                  "Trying to apply a function to a view of unexpected rank " +
-                  std::to_string(rank(a)))
-                  .c_str());)
-      KOKKOS_IF_ON_DEVICE(
-          Kokkos::abort(
-              "Trying to apply a function to a view of unexpected rank");)
+template <typename... Args>
+struct ApplyToViewOfStaticRank<DynRankView<Args...>> {
+  template <typename Function>
+  static void apply(Function&& f, DynRankView<Args...> a) {
+    switch (rank(a)) {
+      case 0: f(as_view_of_rank_n<0>(a)); break;
+      case 1: f(as_view_of_rank_n<1>(a)); break;
+      case 2: f(as_view_of_rank_n<2>(a)); break;
+      case 3: f(as_view_of_rank_n<3>(a)); break;
+      case 4: f(as_view_of_rank_n<4>(a)); break;
+      case 5: f(as_view_of_rank_n<5>(a)); break;
+      case 6: f(as_view_of_rank_n<6>(a)); break;
+      case 7: f(as_view_of_rank_n<7>(a)); break;
+      default:
+        KOKKOS_IF_ON_HOST(
+            Kokkos::abort(
+                std::string(
+                    "Trying to apply a function to a view of unexpected rank " +
+                    std::to_string(rank(a)))
+                    .c_str());)
+        KOKKOS_IF_ON_DEVICE(
+            Kokkos::abort(
+                "Trying to apply a function to a view of unexpected rank");)
+    }
   }
-}
+};
 
 }  // namespace Impl
 
@@ -1296,7 +1299,7 @@ inline void deep_copy(
                      typename ViewTraits<DT, DP...>::value_type>,
       "deep_copy requires non-const type");
 
-  Impl::apply_to_view_of_static_rank(
+  Impl::ApplyToViewOfStaticRank<DynRankView<DT, DP...>>::apply(
       [=](auto view) { deep_copy(e, view, value); }, dst);
 }
 
@@ -1306,8 +1309,8 @@ inline void deep_copy(
     typename ViewTraits<DT, DP...>::const_value_type& value,
     std::enable_if_t<std::is_same_v<typename ViewTraits<DT, DP...>::specialize,
                                     void>>* = nullptr) {
-  Impl::apply_to_view_of_static_rank([=](auto view) { deep_copy(view, value); },
-                                     dst);
+  Impl::ApplyToViewOfStaticRank<DynRankView<DT, DP...>>::apply(
+      [=](auto view) { deep_copy(view, value); }, dst);
 }
 
 /** \brief  Deep copy into a value in Host memory from a view.  */

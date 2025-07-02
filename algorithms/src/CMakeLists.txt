@@ -9,7 +9,7 @@ file(GLOB ALGO_SOURCES *.cpp)
 append_glob(ALGO_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/std_algorithms/*.hpp)
 append_glob(ALGO_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/std_algorithms/impl/*.hpp)
 
-set(ALGO_MODULES Kokkos_StdAlgorithms.cppm)
+set(ALGO_MODULES Kokkos_Random.cppm Kokkos_Sort.cppm Kokkos_StdAlgorithms.cppm)
 
 install(
   DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
@@ -34,5 +34,5 @@ kokkos_lib_include_directories(
 )
 target_link_libraries(kokkosalgorithms PUBLIC kokkoscore)
 
-kokkos_link_tpl(kokkoscontainers PUBLIC ROCTHRUST)
-kokkos_link_tpl(kokkoscore PUBLIC ONEDPL)
+kokkos_link_tpl(kokkosalgorithms PUBLIC ROCTHRUST)
+kokkos_link_tpl(kokkosalgorithms PUBLIC ONEDPL)

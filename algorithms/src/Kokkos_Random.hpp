@@ -1626,7 +1626,9 @@ template <class ExecutionSpace, class ViewType, class RandomPool,
 void fill_random(const ExecutionSpace& exec, ViewType a, RandomPool g,
                  typename ViewType::const_value_type begin,
                  typename ViewType::const_value_type end) {
-  Impl::apply_to_view_of_static_rank(
+  // Using Impl::apply_to_view_of_static_rank function here
+  // is not compatible with modules. Using the partial specialization works.
+  Impl::ApplyToViewOfStaticRank<ViewType>::apply(
       [&](auto dst) { Kokkos::Impl::fill_random(exec, dst, g, begin, end); },
       a);
 }
