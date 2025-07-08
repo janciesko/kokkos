@@ -130,6 +130,9 @@ ThreadsInternal::ThreadsInternal()
       m_pool_size(0),
       m_pool_fan_size(0),
       m_pool_state(ThreadState::Terminating) {
+  /** Enforce correct use **/
+  Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
+
   if (&s_threads_process != this) {
     // The code in the if is executed by a spawned thread not by the root
     // thread

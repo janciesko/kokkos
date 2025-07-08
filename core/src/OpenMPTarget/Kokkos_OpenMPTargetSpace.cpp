@@ -44,7 +44,10 @@
 namespace Kokkos {
 namespace Experimental {
 /* Default allocation mechanism */
-OpenMPTargetSpace::OpenMPTargetSpace() {}
+OpenMPTargetSpace::OpenMPTargetSpace() {
+  /** Enforce correct use **/
+  Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
+}
 
 void* OpenMPTargetSpace::impl_allocate(
 

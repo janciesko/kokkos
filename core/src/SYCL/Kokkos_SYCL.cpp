@@ -49,6 +49,10 @@ namespace Kokkos {
 SYCL::SYCL()
     : m_space_instance(&Impl::SYCLInternal::singleton(),
                        [](Impl::SYCLInternal*) {}) {
+  /** Enforce correct use **/
+  Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
+
+  /* FIXME: We can remove the check below */
   Impl::SYCLInternal::singleton().verify_is_initialized(
       "SYCL instance constructor");
 }

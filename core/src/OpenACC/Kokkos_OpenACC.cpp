@@ -41,6 +41,9 @@ Kokkos::Experimental::OpenACC::OpenACC()
     : m_space_instance(
           &Kokkos::Experimental::Impl::OpenACCInternal::singleton(),
           [](Impl::OpenACCInternal*) {}) {
+  /** Enforce correct use **/
+  Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
+
   Impl::OpenACCInternal::singleton().verify_is_initialized(
       "OpenACC instance constructor");
 }
@@ -51,6 +54,9 @@ Kokkos::Experimental::OpenACC::OpenACC(int async_arg)
                          ptr->finalize();
                          delete ptr;
                        }) {
+  /** Enforce correct use **/
+  Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
+
   Impl::OpenACCInternal::singleton().verify_is_initialized(
       "OpenACC instance constructor");
   m_space_instance->initialize(async_arg);

@@ -170,7 +170,10 @@ class HPX {
 
   HPX()
       : m_instance_data(Kokkos::Impl::HostSharedPtr<instance_data>(
-            &m_default_instance_data, &default_instance_deleter)) {}
+            &m_default_instance_data, &default_instance_deleter)) {
+    /** Enforce correct use **/
+    Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
+  }
 
 #pragma GCC diagnostic pop
 

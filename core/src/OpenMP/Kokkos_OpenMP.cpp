@@ -30,6 +30,9 @@ namespace Kokkos {
 OpenMP::OpenMP()
     : m_space_instance(&Impl::OpenMPInternal::singleton(),
                        [](Impl::OpenMPInternal *) {}) {
+  /** Enforce correct use **/
+  Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
+
   Impl::OpenMPInternal::singleton().verify_is_initialized(
       "OpenMP instance constructor");
 }
@@ -40,6 +43,9 @@ OpenMP::OpenMP(int pool_size)
                          ptr->finalize();
                          delete ptr;
                        }) {
+  /** Enforce correct use **/
+  Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
+
   Impl::OpenMPInternal::singleton().verify_is_initialized(
       "OpenMP instance constructor");
 }

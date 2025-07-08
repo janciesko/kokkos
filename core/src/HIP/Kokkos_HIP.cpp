@@ -139,6 +139,10 @@ void HIP::impl_finalize() {
 HIP::HIP()
     : m_space_instance(&Impl::HIPInternal::singleton(),
                        [](Impl::HIPInternal*) {}) {
+  /** Enforce correct use **/
+  Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
+
+  /* FIXME: We can remove the check below */
   Impl::HIPInternal::singleton().verify_is_initialized(
       "HIP instance constructor");
 }
