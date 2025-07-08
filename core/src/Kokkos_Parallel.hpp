@@ -161,9 +161,6 @@ inline void parallel_for(
 template <class FunctorType>
 inline void parallel_for(const std::string& str, const size_t work_count,
                          const FunctorType& functor) {
-  /** Enforce correct use **/
-  Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
-
   using execution_space =
       typename Impl::FunctorPolicyExecutionSpace<FunctorType,
                                                  void>::execution_space;
