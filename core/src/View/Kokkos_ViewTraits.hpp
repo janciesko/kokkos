@@ -331,13 +331,15 @@ struct ViewTraits;
 
 template <>
 struct ViewTraits<void> {
-  using execution_space = void;
-  using memory_space    = void;
-  using HostMirrorSpace = void;
-  using array_layout    = void;
-  using memory_traits   = void;
-  using specialize      = void;
-  using hooks_policy    = void;
+  using execution_space   = void;
+  using memory_space      = void;
+  using host_mirror_space = void;
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+  using array_layout                    = void;
+  using memory_traits                   = void;
+  using specialize                      = void;
+  using hooks_policy                    = void;
 };
 
 template <class... Prop>
@@ -345,11 +347,14 @@ struct ViewTraits<void, void, Prop...> {
   // Ignore an extraneous 'void'
   using execution_space = typename ViewTraits<void, Prop...>::execution_space;
   using memory_space    = typename ViewTraits<void, Prop...>::memory_space;
-  using HostMirrorSpace = typename ViewTraits<void, Prop...>::HostMirrorSpace;
-  using array_layout    = typename ViewTraits<void, Prop...>::array_layout;
-  using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
-  using specialize      = typename ViewTraits<void, Prop...>::specialize;
-  using hooks_policy    = typename ViewTraits<void, Prop...>::hooks_policy;
+  using host_mirror_space =
+      typename ViewTraits<void, Prop...>::host_mirror_space;
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+  using array_layout  = typename ViewTraits<void, Prop...>::array_layout;
+  using memory_traits = typename ViewTraits<void, Prop...>::memory_traits;
+  using specialize    = typename ViewTraits<void, Prop...>::specialize;
+  using hooks_policy  = typename ViewTraits<void, Prop...>::hooks_policy;
 };
 
 template <class HooksPolicy, class... Prop>
@@ -358,11 +363,14 @@ struct ViewTraits<
     HooksPolicy, Prop...> {
   using execution_space = typename ViewTraits<void, Prop...>::execution_space;
   using memory_space    = typename ViewTraits<void, Prop...>::memory_space;
-  using HostMirrorSpace = typename ViewTraits<void, Prop...>::HostMirrorSpace;
-  using array_layout    = typename ViewTraits<void, Prop...>::array_layout;
-  using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
-  using specialize      = typename ViewTraits<void, Prop...>::specialize;
-  using hooks_policy    = HooksPolicy;
+  using host_mirror_space =
+      typename ViewTraits<void, Prop...>::host_mirror_space;
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+  using array_layout  = typename ViewTraits<void, Prop...>::array_layout;
+  using memory_traits = typename ViewTraits<void, Prop...>::memory_traits;
+  using specialize    = typename ViewTraits<void, Prop...>::specialize;
+  using hooks_policy  = HooksPolicy;
 };
 
 template <class ArrayLayout, class... Prop>
@@ -372,11 +380,14 @@ struct ViewTraits<std::enable_if_t<Kokkos::is_array_layout<ArrayLayout>::value>,
 
   using execution_space = typename ViewTraits<void, Prop...>::execution_space;
   using memory_space    = typename ViewTraits<void, Prop...>::memory_space;
-  using HostMirrorSpace = typename ViewTraits<void, Prop...>::HostMirrorSpace;
-  using array_layout    = ArrayLayout;
-  using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
-  using specialize      = typename ViewTraits<void, Prop...>::specialize;
-  using hooks_policy    = typename ViewTraits<void, Prop...>::hooks_policy;
+  using host_mirror_space =
+      typename ViewTraits<void, Prop...>::host_mirror_space;
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+  using array_layout                    = ArrayLayout;
+  using memory_traits = typename ViewTraits<void, Prop...>::memory_traits;
+  using specialize    = typename ViewTraits<void, Prop...>::specialize;
+  using hooks_policy  = typename ViewTraits<void, Prop...>::hooks_policy;
 };
 
 template <class Space, class... Prop>
@@ -389,7 +400,11 @@ struct ViewTraits<std::enable_if_t<Kokkos::is_space<Space>::value>, Space,
                      void> &&
           std::is_same_v<typename ViewTraits<void, Prop...>::memory_space,
                          void> &&
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
           std::is_same_v<typename ViewTraits<void, Prop...>::HostMirrorSpace,
+                         void> &&
+#endif
+          std::is_same_v<typename ViewTraits<void, Prop...>::host_mirror_space,
                          void> &&
           std::is_same_v<typename ViewTraits<void, Prop...>::array_layout,
                          void>,
@@ -397,8 +412,10 @@ struct ViewTraits<std::enable_if_t<Kokkos::is_space<Space>::value>, Space,
 
   using execution_space = typename Space::execution_space;
   using memory_space    = typename Space::memory_space;
-  using HostMirrorSpace =
+  using host_mirror_space =
       typename Kokkos::Impl::HostMirror<Space>::Space::memory_space;
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
   using array_layout  = typename execution_space::array_layout;
   using memory_traits = typename ViewTraits<void, Prop...>::memory_traits;
   using specialize    = typename ViewTraits<void, Prop...>::specialize;
@@ -424,13 +441,15 @@ struct ViewTraits<
                          void>,
       "MemoryTrait is the final optional template argument for a View");
 
-  using execution_space = void;
-  using memory_space    = void;
-  using HostMirrorSpace = void;
-  using array_layout    = void;
-  using memory_traits   = MemoryTraits;
-  using specialize      = void;
-  using hooks_policy    = void;
+  using execution_space   = void;
+  using memory_space      = void;
+  using host_mirror_space = void;
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+  using array_layout                    = void;
+  using memory_traits                   = MemoryTraits;
+  using specialize                      = void;
+  using hooks_policy                    = void;
 };
 
 template <class DataType, class... Properties>
@@ -514,10 +533,11 @@ struct ViewTraits {
   //------------------------------------
   // Execution space, memory space, memory access traits, and host mirror space.
 
-  using execution_space   = ExecutionSpace;
-  using memory_space      = MemorySpace;
-  using device_type       = Kokkos::Device<ExecutionSpace, MemorySpace>;
-  using memory_traits     = MemoryTraits;
+  using execution_space = ExecutionSpace;
+  using memory_space    = MemorySpace;
+  using device_type     = Kokkos::Device<ExecutionSpace, MemorySpace>;
+  using memory_traits   = MemoryTraits;
+
   using host_mirror_space = HostMirrorSpace;
   using hooks_policy      = HooksPolicy;
 
