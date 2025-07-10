@@ -186,7 +186,7 @@ TEST(hip, space_access) {
                 Kokkos::HIPHostPinnedSpace>);
 
   static_assert(
-      std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::Space,
+      std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::Device,
                      Kokkos::Device<Kokkos::HostSpace::execution_space,
                                     Kokkos::HIPManagedSpace>>);
 
@@ -204,7 +204,7 @@ TEST(hip, space_access) {
 
   static_assert(Kokkos::SpaceAccessibility<
                 Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::Space,
-                Kokkos::HostSpace>::accessible);
+                Kokkos::HIPManagedSpace>::accessible);
 }
 
 template <class MemSpace, class ExecSpace>
