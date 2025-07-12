@@ -148,19 +148,9 @@ endif()
 if(Kokkos_ENABLE_IMPL_MDSPAN)
   message(STATUS "Experimental mdspan support is enabled")
 
-  # Some compilers now include mdspan... we just flag on their version
-  # for now until we can get some compiler detection support
-  include(CheckIncludeFileCXX)
-  check_include_file_cxx(experimental/mdspan KOKKOS_COMPILER_SUPPORTS_EXPERIMENTAL_MDSPAN)
-  check_include_file_cxx(mdspan KOKKOS_COMPILER_SUPPORTS_MDSPAN)
-
   if(Kokkos_ENABLE_MDSPAN_EXTERNAL)
     message(STATUS "Using external mdspan")
     target_link_libraries(kokkoscore PUBLIC std::mdspan)
-  elseif(KOKKOS_COMPILER_SUPPORTS_MDSPAN AND NOT Kokkos_ENABLE_IMPL_SKIP_COMPILER_MDSPAN)
-    message(STATUS "Using compiler-supplied mdspan")
-  elseif(KOKKOS_COMPILER_SUPPORTS_EXPERIMENTAL_MDSPAN AND NOT Kokkos_ENABLE_IMPL_SKIP_COMPILER_MDSPAN)
-    message(STATUS "Using compiler-supplied experimental/mdspan")
   else()
     target_include_directories(kokkoscore SYSTEM PUBLIC $<BUILD_INTERFACE:${KOKKOS_SOURCE_DIR}/tpls/mdspan/include>)
 

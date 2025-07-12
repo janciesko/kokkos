@@ -122,16 +122,12 @@ endif()
 kokkos_enable_option(IMPL_MDSPAN ON "Whether to enable experimental mdspan support")
 kokkos_enable_option(MDSPAN_EXTERNAL OFF "Whether to use an external version of mdspan")
 kokkos_enable_option(
-  IMPL_SKIP_COMPILER_MDSPAN ON "Whether to use an internal version of mdspan even if the compiler provides mdspan"
-)
-kokkos_enable_option(
   IMPL_CHECK_POSSIBLY_BREAKING_LAYOUTS
   OFF
   "Whether to check for uses of LayoutRight that have an explicit stride that may have changed in the new View implementation."
 )
 mark_as_advanced(Kokkos_ENABLE_IMPL_MDSPAN)
 mark_as_advanced(Kokkos_ENABLE_MDSPAN_EXTERNAL)
-mark_as_advanced(Kokkos_ENABLE_IMPL_SKIP_COMPILER_MDSPAN)
 mark_as_advanced(IMPL_CHECK_POSSIBLY_BREAKING_LAYOUTS)
 
 if(Kokkos_ENABLE_IMPL_MDSPAN)
