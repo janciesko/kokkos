@@ -82,7 +82,7 @@ constexpr bool test_view_typedefs_impl() {
   static_assert(std::is_same_v<typename ViewType::memory_space, typename Space::memory_space>);
   static_assert(std::is_same_v<typename ViewType::device_type, Kokkos::Device<typename ViewType::execution_space, typename ViewType::memory_space>>);
   static_assert(std::is_same_v<typename ViewType::memory_traits, MemoryTraitsType>);
-  static_assert(std::is_same_v<typename ViewType::host_mirror_space, HostMirrorSpace>);
+  static_assert(std::is_same_v<typename ViewType::host_mirror_space::memory_space, typename HostMirrorSpace::memory_space>);
   static_assert(std::is_same_v<typename ViewType::size_type, typename ViewType::memory_space::size_type>);
  
   // FIXME: should be deprecated in favor of reference
@@ -110,7 +110,7 @@ constexpr bool test_view_typedefs_impl() {
                                             typename ViewType::memory_traits>>);
   static_assert(std::is_same_v<typename ViewType::HostMirror,
                                Kokkos::DynRankView<typename ViewType::non_const_data_type, typename ViewType::array_layout,
-                                                   HostMirrorSpace
+                                                   typename HostMirrorSpace::memory_space
                                                    /*, typename ViewTraitsType::hooks_policy*/>>);
 
 /* FIXME: these don't exist in DynRankView, should they?
@@ -206,9 +206,9 @@ namespace TestInt {
   // Explicitly define host mirror: If the default exec is a host exec, that is it
   using host_mirror_space = std::conditional_t<is_host_exec, Kokkos::DefaultExecutionSpace,
   // otherwise if unified memory is on, use DefaultExecutionSpace
-                               std::conditional_t<has_unified_mem_space, Kokkos::DefaultExecutionSpace>,
+                               std::conditional_t<has_unified_mem_space, Kokkos::DefaultExecutionSpace,
   // else it's HostSpace
-                                  Kokkos::HostSpace::execution_space>>;
+                                  Kokkos::HostSpace>>;
   static_assert(test_view_typedefs<layout_type, space, memory_traits, host_mirror_space, int, int&>(
                      ViewParams<int>{}));
 }
@@ -219,7 +219,7 @@ namespace TestIntDefaultExecutionSpace {
   using space = Kokkos::DefaultExecutionSpace;
   using memory_traits = Kokkos::MemoryTraits<>;
   // Explicitly define host mirror: If the default exec is a host exec, that is it
-  using host_mirror_space = std::conditional_t<is_host_exec, Kokkos::HostSpace,
+  using host_mirror_space = std::conditional_t<is_host_exec, Kokkos::DefaultExecutionSpace,
   // otherwise if unified memory is on, use DefaultExecutionSpace
                                std::conditional_t<has_unified_mem_space, Kokkos::DefaultExecutionSpace,
   // else it's HostSpace
@@ -254,7 +254,7 @@ namespace TestIntAtomic {
   using space = Kokkos::DefaultExecutionSpace;
   using memory_traits = Kokkos::MemoryTraits<Kokkos::Atomic>;
   // Explicitly define host mirror: If the default exec is a host exec, that is it
-  using host_mirror_space = std::conditional_t<is_host_exec, Kokkos::DefaultExecutionSpace,
+  using host_mirror_space = std::conditional_t<is_host_exec, Kokkos::HostSpace,
   // otherwise if unified memory is on, use DefaultExecutionSpace
                                std::conditional_t<has_unified_mem_space,Kokkos::DefaultExecutionSpace,
   // else it's HostSpace

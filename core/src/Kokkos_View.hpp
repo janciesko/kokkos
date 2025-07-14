@@ -227,8 +227,7 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   // Compatible HostMirror view
   using host_mirror_type =
       View<typename traits::non_const_data_type, typename traits::array_layout,
-           Device<DefaultHostExecutionSpace,
-                  typename traits::host_mirror_space::memory_space>,
+           typename Impl::HostMirror<memory_space>::Device,
            typename traits::hooks_policy>;
 
   // Compatible HostMirror view
