@@ -20,7 +20,7 @@
 #include <Kokkos_Macros.hpp>
 #include <Kokkos_Abort.hpp>
 
-#define KOKKOS_IMPL_EXPECTS_CRITICAL(...)                                           \
+#define KOKKOS_EXPECTS_CRITICAL(...)                                           \
   {                                                                            \
     if (!bool(__VA_ARGS__)) {                                                  \
       ::Kokkos::abort(                                                         \
@@ -34,17 +34,9 @@
 
 #if !defined(NDEBUG) || defined(KOKKOS_ENFORCE_CONTRACTS) || \
     defined(KOKKOS_ENABLE_DEBUG)
-#define KOKKOS_EXPECTS(...)                                                    \
-  {                                                                            \
-    if (!bool(__VA_ARGS__)) {                                                  \
-      ::Kokkos::abort(                                                         \
-          "Kokkos contract violation:\n  "                                     \
-          "  Expected precondition `" #__VA_ARGS__                             \
-          "` evaluated false.\n"                                               \
-          "Error at " KOKKOS_IMPL_TOSTRING(__FILE__) ":" KOKKOS_IMPL_TOSTRING( \
-              __LINE__) " \n");                                                \
-    }                                                                          \
-  }
+#define KOKKOS_EXPECTS(...) \
+  { KOKKOS_IMPL_EXPECTS_CRITICAL(...) }
+
 #define KOKKOS_ENSURES(...)                                                    \
   {                                                                            \
     if (!bool(__VA_ARGS__)) {                                                  \

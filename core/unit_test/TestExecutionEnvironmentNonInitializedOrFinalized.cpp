@@ -285,108 +285,108 @@ TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_for_1) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   std::string matcher                     = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_for_1(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_for_1(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_for_1();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_for_2) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   std::string matcher                     = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_for_2(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_for_2(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_for_2();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_for_3) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   std::string matcher                     = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_for_3(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_for_3(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_for_3();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_for_4) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   std::string matcher                     = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_for_4(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_for_4(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_for_4();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_reduce_1) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_reduce_1(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_reduce_1(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_reduce_1();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_reduce_2) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_reduce_2(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_reduce_2(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_reduce_2();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_reduce_3) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_reduce_3(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_reduce_3(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_reduce_3();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_reduce_4) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_reduce_4(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_reduce_4(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_reduce_4();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
@@ -399,102 +399,102 @@ TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
       "Constructing View and initializing data with uninitialized execution "
       "space";
 #endif
-  EXPECT_DEATH({ Tested_APIs::parallel_reduce_5(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_reduce_5(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_reduce_5();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_reduce_6) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_reduce_6(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_reduce_6(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_reduce_6();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_scan_1) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_scan_1(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_scan_1(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_scan_1();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_scan_2) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_scan_2(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_scan_2(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_scan_2();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_scan_3) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_scan_3(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_scan_3(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_scan_3();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_scan_4) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_scan_4(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_scan_4(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_scan_4();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_scan_5) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_scan_5(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_scan_5(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_scan_5();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_scan_6) {
   std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_scan_6(); }, ContainsRegex(matcher));
+  EXPECT_DEATH({ Tested_APIs::parallel_scan_6(); }, matcher);
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_scan_6();
       },
-      ContainsRegex(matcher));
+      matcher);
 }
 
 }  // namespace
