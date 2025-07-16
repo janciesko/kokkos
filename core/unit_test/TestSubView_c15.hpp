@@ -48,11 +48,10 @@ TEST(TEST_CATEGORY_DEATH, view_subview_constructor_layout_compatibility) {
 
   Kokkos::View<int**, LL> a2("A2", 1, N);
   {
-    // Using subview dims (1, ALL), but the first dimension is stride 1. Any
-    // subview layout should be appropriate.
-    (void)Kokkos::View<int*, LL>(a2, 1, Kokkos::ALL);
-    (void)Kokkos::View<int*, LS>(a2, 1, Kokkos::ALL);
-    (void)Kokkos::View<int*, LR>(a2, 1, Kokkos::ALL);
+    // Using subview dims (0, ALL). Any subview layout should be appropriate.
+    (void)Kokkos::View<int*, LL>(a2, 0, Kokkos::ALL);
+    (void)Kokkos::View<int*, LS>(a2, 0, Kokkos::ALL);
+    (void)Kokkos::View<int*, LR>(a2, 0, Kokkos::ALL);
   }
 }
 }  // namespace
