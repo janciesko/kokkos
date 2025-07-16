@@ -746,6 +746,22 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
                    typename mdspan_type::mapping_type, sizeof(value_type)>(
                    arg_prop, arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5,
                    arg_N6, arg_N7)) {
+#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
+    if constexpr (std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutLeft> ||
+                  std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutRight> ||
+                  std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutStride>) {
+      auto prop_copy = Impl::with_properties_if_unset(arg_prop, std::string{});
+      const std::string& alloc_name =
+          Impl::get_property<Impl::LabelTag>(prop_copy);
+
+      Impl::runtime_check_rank(*this, !traits::impl_is_customized, arg_N0,
+                               arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6,
+                               arg_N7, alloc_name.c_str());
+    }
+#endif
     static_assert(traits::array_layout::is_extent_constructible,
                   "Layout is not constructible from extent arguments. Use "
                   "overload taking a layout object instead.");
@@ -770,6 +786,18 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
                    typename mdspan_type::mapping_type, sizeof(value_type)>(
                    arg_prop, arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5,
                    arg_N6, arg_N7)) {
+#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
+    if constexpr (std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutLeft> ||
+                  std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutRight> ||
+                  std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutStride>) {
+      Impl::runtime_check_rank(*this, !traits::impl_is_customized, arg_N0,
+                               arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6,
+                               arg_N7, "UNMANAGED");
+    }
+#endif
     static_assert(traits::array_layout::is_extent_constructible,
                   "Layout is not constructible from extent arguments. Use "
                   "overload taking a layout object instead.");

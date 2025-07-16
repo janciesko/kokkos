@@ -644,7 +644,9 @@ class DynRankView : private View<DataType*******, Properties...> {
       return view_type::data()[0];
     } else
 #endif
+    {
       return view_type::operator()(0, 0, 0, 0, 0, 0, 0);
+    }
   }
 
   KOKKOS_FUNCTION reference_type operator()(index_type i0) const {
@@ -665,7 +667,9 @@ class DynRankView : private View<DataType*******, Properties...> {
       }
     } else
 #endif
+    {
       return view_type::operator()(i0, 0, 0, 0, 0, 0, 0);
+    }
 #if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
     !defined(KOKKOS_COMPILER_MSVC)
     __builtin_unreachable();
@@ -694,7 +698,9 @@ class DynRankView : private View<DataType*******, Properties...> {
       }
     } else
 #endif
+    {
       return view_type::operator()(i0, i1, 0, 0, 0, 0, 0);
+    }
 #if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
     !defined(KOKKOS_COMPILER_MSVC)
     __builtin_unreachable();
@@ -727,7 +733,9 @@ class DynRankView : private View<DataType*******, Properties...> {
       }
     } else
 #endif
+    {
       return view_type::operator()(i0, i1, i2, 0, 0, 0, 0);
+    }
 #if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
     !defined(KOKKOS_COMPILER_MSVC)
     __builtin_unreachable();
