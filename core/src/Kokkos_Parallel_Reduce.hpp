@@ -1675,7 +1675,6 @@ struct ParallelReduceFence {
  */
 
 // ReturnValue is scalar or array: take by reference
-
 template <class PolicyType, class FunctorType, class ReturnType>
 inline std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value &&
                         !(Kokkos::is_view<ReturnType>::value ||
@@ -1717,7 +1716,7 @@ inline std::enable_if_t<!(Kokkos::is_view<ReturnType>::value ||
 parallel_reduce(const std::string& label, const size_t& work_count,
                 const FunctorType& functor, ReturnType& return_value) {
   using policy_type =
-    typename Impl::ParallelReducePolicyType<void, size_t,
+      typename Impl::ParallelReducePolicyType<void, size_t,
                                               FunctorType>::policy_type;
   parallel_reduce(label, policy_type(0, work_count), functor, return_value);
 }
@@ -1732,7 +1731,6 @@ parallel_reduce(const size_t& work_count, const FunctorType& functor,
 }
 
 // ReturnValue as View or Reducer: take by copy to allow for inline construction
-
 template <class PolicyType, class FunctorType, class ReturnType>
 inline std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value &&
                         (Kokkos::is_view<ReturnType>::value ||
@@ -1749,7 +1747,7 @@ parallel_reduce(const std::string& label, const PolicyType& policy,
   Impl::ParallelReduceFence<typename PolicyType::execution_space, ReturnType>::
       fence(
           policy.space(),
-          "Kokkos::parallel_reduce: fence due to result being value, not view",
+          "Kokkos::parallel_reduce: fence due to result being view or reducer",
           return_value);
 }
 
@@ -1759,7 +1757,7 @@ inline std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value &&
                          Kokkos::is_reducer<ReturnType>::value ||
                          std::is_pointer_v<ReturnType>)>
 parallel_reduce(const PolicyType& policy, const FunctorType& functor,
-                const ReturnType& return_value) { 
+                const ReturnType& return_value) {
   parallel_reduce("", policy, functor, return_value);
 }
 
@@ -1785,7 +1783,6 @@ parallel_reduce(const size_t& work_count, const FunctorType& functor,
 }
 
 // No Return Argument
-
 template <class PolicyType, class FunctorType>
 inline void parallel_reduce(
     const std::string& label, const PolicyType& policy,

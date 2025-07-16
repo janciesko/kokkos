@@ -35,7 +35,7 @@
 #if !defined(NDEBUG) || defined(KOKKOS_ENFORCE_CONTRACTS) || \
     defined(KOKKOS_ENABLE_DEBUG)
 #define KOKKOS_EXPECTS(...) \
-  { KOKKOS_IMPL_EXPECTS_CRITICAL(...) }
+  { KOKKOS_EXPECTS_CRITICAL(...) }
 
 #define KOKKOS_ENSURES(...)                                                    \
   {                                                                            \

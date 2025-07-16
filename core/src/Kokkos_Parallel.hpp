@@ -449,9 +449,6 @@ template <class FunctorType, class ReturnType>
 inline void parallel_scan(const std::string& str, const size_t work_count,
                           const FunctorType& functor,
                           ReturnType& return_value) {
-  /** Enforce correct use **/
-  Impl::CheckUsage<Impl::UsageRequires::isInitialized>::check();
-
   using execution_space =
       typename Kokkos::Impl::FunctorPolicyExecutionSpace<FunctorType,
                                                          void>::execution_space;

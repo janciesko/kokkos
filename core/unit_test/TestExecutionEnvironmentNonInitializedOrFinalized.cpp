@@ -197,46 +197,49 @@ class EmptyReduceFunctor {
  public:
   using size_type = typename Kokkos::DefaultExecutionSpace::size_type;
   KOKKOS_INLINE_FUNCTION
-  void join(Type& dst, const Type& src) const {}
+  void join(Type&, const Type&) const {}
   KOKKOS_INLINE_FUNCTION
-  void operator()(size_type iwork, Type& dst) const {}
+  void operator()(size_type, Type&) const {}
   KOKKOS_INLINE_FUNCTION
-  void final(Type& dst) const {}
+  void final(Type&) const {}
 };
 
-void parallel_for_1() { Kokkos::parallel_for(0, KOKKOS_LAMBDA(int){}); }
-void parallel_for_2() {
-  Kokkos::parallel_for("parallel_for", 0, KOKKOS_LAMBDA(int){});
-}
-void parallel_for_3() {
-  Kokkos::RangePolicy<> policy(0, 0);
-  Kokkos::parallel_for(policy, KOKKOS_LAMBDA(int){});
-}
-void parallel_for_4() {
+// Ctor with "String, policy and functor"
+void parallel_for_1() {
   Kokkos::RangePolicy<> policy(0, 0);
   Kokkos::parallel_for("parallel_for", policy, KOKKOS_LAMBDA(int){});
 }
+void parallel_for_2() {
+  Kokkos::RangePolicy<> policy(0, 0);
+  Kokkos::parallel_for(policy, KOKKOS_LAMBDA(int){});
+}
 
+// Ctor with "No Return Argument", non-fencing
 void parallel_reduce_1() {
-  float x;
-  Kokkos::parallel_reduce(0, KOKKOS_LAMBDA(int, float&){}, x);
+  using functor_type = EmptyReduceFunctor<float>;
+  Kokkos::parallel_reduce("parallel_reduce", 0, functor_type{});
+  Kokkos::fence();
 }
 void parallel_reduce_2() {
-  float x;
-  Kokkos::parallel_reduce("parallel_reduce", 0, KOKKOS_LAMBDA(int, float&){},
-                          x);
+  using functor_type = EmptyReduceFunctor<float>;
+  Kokkos::parallel_reduce(0, functor_type{});
+  Kokkos::fence();
 }
+
+// Ctor with "ReturnValue is scalar or array"
 void parallel_reduce_3() {
-  float x;
-  Kokkos::RangePolicy<> policy(0, 0);
-  Kokkos::parallel_reduce(policy, KOKKOS_LAMBDA(int, float&){}, x);
-}
-void parallel_reduce_4() {
   float x;
   Kokkos::RangePolicy<> policy(0, 0);
   Kokkos::parallel_reduce("parallel_reduce", policy,
                           KOKKOS_LAMBDA(int, float&){}, x);
 }
+void parallel_reduce_4() {
+  float x;
+  Kokkos::RangePolicy<> policy(0, 0);
+  Kokkos::parallel_reduce(policy, KOKKOS_LAMBDA(int, float&){}, x);
+}
+
+// Ctor with "ReturnValue as View or Reducer"
 void parallel_reduce_5() {
   Kokkos::View<float> x{"x"};
   Kokkos::RangePolicy<> policy(0, 0);
@@ -244,39 +247,35 @@ void parallel_reduce_5() {
                           KOKKOS_LAMBDA(int, float&){}, x);
 }
 void parallel_reduce_6() {
-  using functor_type = EmptyReduceFunctor<float>;
-  Kokkos::parallel_reduce("parallel_reduce", 0, functor_type{});
+  Kokkos::View<float> x{"x"};
+  Kokkos::RangePolicy<> policy(0, 0);
+  Kokkos::parallel_reduce(policy, KOKKOS_LAMBDA(int, float&){}, x);
 }
 
+// Ctor with "Is_execution_policy<ExecutionPolicy>, no return val", non-fencing
 void parallel_scan_1() {
-  Kokkos::parallel_scan(0, KOKKOS_LAMBDA(int, float&, bool){});
+  Kokkos::RangePolicy<> policy(0, 0);
+  Kokkos::parallel_scan("parallel_scan", policy,
+                        KOKKOS_LAMBDA(int, float&, bool){});
+  Kokkos::fence();
 }
 void parallel_scan_2() {
-  Kokkos::parallel_scan("parallel_scan", 0, KOKKOS_LAMBDA(int, float&, bool){});
-}
-
-void parallel_scan_3() {
-  float x;
-  Kokkos::parallel_scan(0, KOKKOS_LAMBDA(int, float&, bool){}, x);
-}
-void parallel_scan_4() {
-  float x;
-  Kokkos::parallel_scan("parallel_scan", 0, KOKKOS_LAMBDA(int, float&, bool){},
-                        x);
-}
-
-void parallel_scan_5() {
   Kokkos::RangePolicy<> policy(0, 0);
   Kokkos::parallel_scan(policy, KOKKOS_LAMBDA(int, float&, bool){});
+  Kokkos::fence();
 }
 
-void parallel_scan_6() {
+// Ctor with "Is_execution_policy<ExecutionPolicy>, return val"
+void parallel_scan_3() {
   float x;
   Kokkos::RangePolicy<> policy(0, 0);
   Kokkos::parallel_scan("parallel_scan", policy,
                         KOKKOS_LAMBDA(int, float&, bool){}, x);
 }
-
+void parallel_scan_4() {
+  Kokkos::RangePolicy<> policy(0, 0);
+  Kokkos::parallel_scan(policy, KOKKOS_LAMBDA(int, float&, bool){});
+}
 }  // namespace Tested_APIs
 
 using namespace ::testing;
@@ -305,34 +304,6 @@ TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
         Kokkos::initialize();
         Kokkos::finalize();
         Tested_APIs::parallel_for_2();
-      },
-      matcher);
-}
-
-TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
-       parallel_for_3) {
-  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
-  std::string matcher                     = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_for_3(); }, matcher);
-  EXPECT_DEATH(
-      {
-        Kokkos::initialize();
-        Kokkos::finalize();
-        Tested_APIs::parallel_for_3();
-      },
-      matcher);
-}
-
-TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
-       parallel_for_4) {
-  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
-  std::string matcher                     = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_for_4(); }, matcher);
-  EXPECT_DEATH(
-      {
-        Kokkos::initialize();
-        Kokkos::finalize();
-        Tested_APIs::parallel_for_4();
       },
       matcher);
 }
@@ -411,7 +382,14 @@ TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        parallel_reduce_6) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENACC)
   std::string matcher = "Kokkos contract violation.*";
+#else
+  std::string matcher =
+      "Constructing View and initializing data with uninitialized execution "
+      "space";
+#endif
   EXPECT_DEATH({ Tested_APIs::parallel_reduce_6(); }, matcher);
   EXPECT_DEATH(
       {
@@ -471,30 +449,4 @@ TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
       },
       matcher);
 }
-TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
-       parallel_scan_5) {
-  std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_scan_5(); }, matcher);
-  EXPECT_DEATH(
-      {
-        Kokkos::initialize();
-        Kokkos::finalize();
-        Tested_APIs::parallel_scan_5();
-      },
-      matcher);
-}
-
-TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
-       parallel_scan_6) {
-  std::string matcher = "Kokkos contract violation.*";
-  EXPECT_DEATH({ Tested_APIs::parallel_scan_6(); }, matcher);
-  EXPECT_DEATH(
-      {
-        Kokkos::initialize();
-        Kokkos::finalize();
-        Tested_APIs::parallel_scan_6();
-      },
-      matcher);
-}
-
 }  // namespace
