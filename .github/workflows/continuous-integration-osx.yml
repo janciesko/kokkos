@@ -69,7 +69,7 @@ jobs:
             -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }}
             -DKokkos_ARCH_NATIVE=ON
             -DKokkos_ENABLE_COMPILER_WARNINGS=ON
-            ${{ cmake_extra_opt }}
+            ${{ matrix.cmake_extra_opts }}
             -DKokkos_ENABLE_DEPRECATED_CODE_4=OFF
             -DKokkos_ENABLE_TESTS=On
             -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=ON
