@@ -18,6 +18,7 @@
 #define KOKKOS_CHECK_USAGE_HPP
 
 #include <Kokkos_Macros.hpp>
+#include <Kokkos_Assert.hpp>
 
 namespace Kokkos {
 
@@ -28,9 +29,10 @@ namespace Impl {
 
 struct UsageRequires {
   struct isInitialized {};
-  // Another examples:
+  // Other examples:
   // isFinalized
-  // isConstV{}, etc.
+  // isConstV{}
+  // ...
 };
 
 template <typename... T>
@@ -42,7 +44,7 @@ class CheckUsage<UsageRequires::isInitialized> {
   static void check() { KOKKOS_EXPECTS_CRITICAL(Kokkos::is_initialized()); }
 };
 
-// Another examples
+// Example implementation of isConstV
 //  template<typename T>
 //  class CheckUsage<UsageRequires::isConstV, T>{
 //    std::string msg = "A const reduction result type is only allowed for a
