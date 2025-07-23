@@ -216,9 +216,17 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
       return hip_single_inter_block_reduce_scan_shmem<false, WorkTag,
                                                       value_type>(f, n);
     };
-    return Kokkos::Impl::hip_get_preferred_blocksize<ParallelReduce,
-                                                     LaunchBounds>(
-        instance, shmem_functor);
+    constexpr auto light_weight =
+        Kokkos::Experimental::WorkItemProperty::HintLightWeight;
+    constexpr typename Policy::work_item_property property;
+    if constexpr ((property & light_weight) == light_weight) {
+      return Kokkos::Impl::hip_get_max_blocksize<ParallelReduce, LaunchBounds>(
+          instance, shmem_functor);
+    } else {
+      return Kokkos::Impl::hip_get_preferred_blocksize<ParallelReduce,
+                                                       LaunchBounds>(
+          instance, shmem_functor);
+    }
   }
 
   inline void execute() {
