@@ -155,15 +155,12 @@ struct ViewValueFunctor {
   }
 
   void construct_shared_allocation() {
-// On A64FX memset seems to do the wrong thing with regards to first touch
-// leading to the significant performance issues
-#ifndef KOKKOS_ARCH_A64FX
     if constexpr (std::is_trivially_default_constructible_v<ValueType>) {
       // value-initialization is equivalent to filling with zeros
       zero_memset_implementation();
-    } else
-#endif
+    } else {
       parallel_for_implementation<ConstructTag>();
+    }
   }
 
   void destroy_shared_allocation() {
