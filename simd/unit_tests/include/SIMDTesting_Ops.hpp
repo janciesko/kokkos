@@ -17,7 +17,13 @@
 #ifndef KOKKOS_SIMD_TESTING_OPS_HPP
 #define KOKKOS_SIMD_TESTING_OPS_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.simd;
+#else
 #include <Kokkos_SIMD.hpp>
+#endif
+#include <Kokkos_Core.hpp>
 
 class plus {
  public:
