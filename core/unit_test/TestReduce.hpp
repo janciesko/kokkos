@@ -672,4 +672,65 @@ TEST(TEST_CATEGORY, reduction_with_large_iteration_count) {
 }
 #endif
 
+/* Test that searching the Max of a View containing only -inf returns -inf and
+   the Min of a View containing only +inf returns +inf. */
+template <typename ScalarType>
+class TestReductionOverInfiniteFloat {
+ public:
+  TestReductionOverInfiniteFloat() { runTest(); }
+
+  void runTest() {
+    const unsigned int N = 10;
+
+    ScalarType inf = Kokkos::Experimental::infinity_v<ScalarType>;
+    // Ensure that inf correctly correspond to infinity for type `ScalarType`
+    EXPECT_TRUE((inf == inf * inf) && (inf == inf + 1));
+
+    Kokkos::View<ScalarType*> view("view", N);
+
+    Kokkos::deep_copy(view, inf);
+    ScalarType min;
+    Kokkos::parallel_reduce(
+        N,
+        KOKKOS_LAMBDA(const int i, ScalarType& partial_min) {
+          if (view[i] < partial_min) {
+            partial_min = view[i];
+          }
+        },
+        Kokkos::Min<ScalarType>(min));
+    EXPECT_EQ(inf, min) << "For type "
+                        << Kokkos::Impl::TypeInfo<ScalarType>::name() << '\n';
+
+    Kokkos::deep_copy(view, -inf);
+    ScalarType max;
+    Kokkos::parallel_reduce(
+        N,
+        KOKKOS_LAMBDA(const int i, ScalarType& partial_max) {
+          if (view[i] > partial_max) {
+            partial_max = view[i];
+          }
+        },
+        Kokkos::Max<ScalarType>(max));
+    EXPECT_EQ(-inf, max) << "For type "
+                         << Kokkos::Impl::TypeInfo<ScalarType>::name() << '\n';
+  }
+};
+
+TEST(TEST_CATEGORY, reduction_identity_min_max_floating_point_types) {
+  // nvhpc on device doesn't use the correct neutral value for the min and max
+  // reducers
+#if !(defined(KOKKOS_COMPILER_NVHPC) && defined(KOKKOS_ENABLE_OPENACC))
+  TestReductionOverInfiniteFloat<Kokkos::Experimental::half_t>();
+  TestReductionOverInfiniteFloat<Kokkos::Experimental::bhalf_t>();
+  TestReductionOverInfiniteFloat<float>();
+  TestReductionOverInfiniteFloat<double>();
+
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) &&          \
+    !defined(KOKKOS_ENABLE_SYCL) && !defined(KOKKOS_ENABLE_OPENMPTARGET) && \
+    !defined(KOKKOS_ENABLE_OPENACC)
+  TestReductionOverInfiniteFloat<long double>();
+#endif
+#endif
+}
+
 }  // namespace Test

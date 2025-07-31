@@ -24,6 +24,7 @@
 #include <Kokkos_Macros.hpp>
 #include <cfloat>
 #include <climits>
+#include <cmath>
 
 namespace Kokkos {
 
@@ -363,8 +364,10 @@ struct reduction_identity<float> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static float prod() {
     return static_cast<float>(1.0f);
   }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static float max() { return -FLT_MAX; }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static float min() { return FLT_MAX; }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float max() {
+    return -HUGE_VALF;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float min() { return HUGE_VALF; }
 };
 
 template <>
@@ -375,8 +378,10 @@ struct reduction_identity<double> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static double prod() {
     return static_cast<double>(1.0);
   }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static double max() { return -DBL_MAX; }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static double min() { return DBL_MAX; }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static double max() {
+    return -HUGE_VAL;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static double min() { return HUGE_VAL; }
 };
 
 // No __host__ __device__ annotation because long double treated as double in
@@ -385,8 +390,8 @@ template <>
 struct reduction_identity<long double> {
   constexpr static long double sum() { return static_cast<long double>(0.0); }
   constexpr static long double prod() { return static_cast<long double>(1.0); }
-  constexpr static long double max() { return -LDBL_MAX; }
-  constexpr static long double min() { return LDBL_MAX; }
+  constexpr static long double max() { return -HUGE_VALL; }
+  constexpr static long double min() { return HUGE_VALL; }
 };
 
 }  // namespace Kokkos
