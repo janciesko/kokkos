@@ -412,53 +412,6 @@ pipeline {
                         }
                     }
                 }
-/*
-                stage('OPENMPTARGET-ROCm-5.2') {
-                    agent {
-                        dockerfile {
-                            filename 'Dockerfile.hipcc'
-                            dir 'scripts/docker'
-                            additionalBuildArgs '--build-arg BASE=rocm/dev-ubuntu-20.04:5.2'
-                            label 'rocm-docker && vega && AMD_Radeon_Instinct_MI60'
-                            args '-v /tmp/ccache.kokkos:/tmp/ccache --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video --env HIP_VISIBLE_DEVICES=$HIP_VISIBLE_DEVICES'
-                        }
-                    }
-                    environment {
-                        OMP_NUM_THREADS = 8
-                        OMP_MAX_ACTIVE_LEVELS = 3
-                        OMP_PLACES = 'threads'
-                        OMP_PROC_BIND = 'spread'
-                        LC_ALL = 'C'
-                    }
-                    steps {
-                        sh 'ccache --zero-stats'
-                        sh 'echo "/opt/rocm/llvm/lib" > /etc/ld.so.conf.d/llvm.conf && ldconfig'
-                        sh '''rm -rf build && \
-                              cmake \
-                                -Bbuild \
-                                -DCMAKE_BUILD_TYPE=Debug \
-                                -DCMAKE_CXX_COMPILER=amdclang++ \
-                                -DCMAKE_CXX_STANDARD=17 \
-                                -DKokkos_ARCH_NATIVE=ON \
-                                -DKokkos_ENABLE_COMPILER_WARNINGS=ON \
-                                -DKokkos_ENABLE_DEPRECATED_CODE_4=OFF \
-                                -DKokkos_ENABLE_TESTS=ON \
-                                -DKokkos_ENABLE_BENCHMARKS=ON \
-                                -DKokkos_ENABLE_OPENMPTARGET=ON \
-                                -DKokkos_ENABLE_OPENMP=ON \
-                                -DKokkos_ARCH_AMD_GFX906=ON \
-                              && \
-                              cmake --build build --parallel ${BUILD_JOBS} && \
-                              cd build && ctest --no-compress-output -T Test --output-on-failure
-                        '''
-                    }
-                    post {
-                        always {
-                            sh 'ccache --show-stats'
-                        }
-                    }
-                }
-*/
                 stage('OPENMPTARGET-Clang') {
                     agent {
                         dockerfile {
