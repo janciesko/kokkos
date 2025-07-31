@@ -167,7 +167,10 @@ void SYCL::print_configuration(std::ostream& os, bool verbose) const {
     }
     os << "[" << device.get_backend() << "]:" << device_type << ':' << counter
        << "] " << device.get_info<sycl::info::device::name>();
-    if (counter == active_device) os << " : Selected";
+    if (counter == active_device)
+      os << " : Selected";
+    else
+      os << " : Not Selected";
     os << '\n';
     ++counter;
   }
