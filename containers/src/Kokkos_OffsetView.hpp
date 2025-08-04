@@ -1115,6 +1115,7 @@ KOKKOS_INLINE_FUNCTION
   return offsetView;
 }
 }  // namespace Impl
+}  // namespace Experimental
 
 template <class D, class... P, class... Args>
 KOKKOS_INLINE_FUNCTION
@@ -1123,15 +1124,32 @@ KOKKOS_INLINE_FUNCTION
             void /* deduce subview type from source view traits */
             ,
             ViewTraits<D, P...>, Args...>::type>::type
-    subview(const OffsetView<D, P...>& src, Args... args) {
+    subview(const Kokkos::Experimental::OffsetView<D, P...>& src,
+            Args... args) {
   static_assert(
-      OffsetView<D, P...>::rank() == sizeof...(Args),
+      Kokkos::Experimental::OffsetView<D, P...>::rank() == sizeof...(Args),
       "subview requires one argument for each source OffsetView rank");
 
   return Kokkos::Experimental::Impl::subview_offset(src, args...);
 }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+namespace Experimental {
+template <class D, class... P, class... Args>
+KOKKOS_DEPRECATED_WITH_COMMENT("Use Kokkos::subview instead")
+KOKKOS_INLINE_FUNCTION
+    typename Kokkos::Experimental::Impl::GetOffsetViewTypeFromViewType<
+        typename Kokkos::Impl::ViewMapping<
+            void /* deduce subview type from source view traits */
+            ,
+            ViewTraits<D, P...>, Args...>::type>::type
+    subview(const Kokkos::Experimental::OffsetView<D, P...>& src,
+            Args... args) {
+  return Kokkos::subview(src, args...);
+}
 }  // namespace Experimental
+#endif
+
 }  // namespace Kokkos
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
