@@ -250,6 +250,10 @@ class neon_mask<Derived, 32, 4> {
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit neon_mask(
       uint32x4_t const& value_in) noexcept
       : m_value(value_in) {}
+  template <class U>
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit neon_mask(
+      neon_mask<U, 32, 4> const& other) noexcept
+      : m_value(static_cast<uint32x4_t>(other)) {}
   template <class G,
             std::enable_if_t<
                 std::is_invocable_r_v<value_type, G,
@@ -394,6 +398,17 @@ class basic_simd<double, simd_abi::neon_fixed_size<2>> {
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit basic_simd(
       float64x2_t const& value_in) noexcept
       : m_value(value_in) {}
+  template <typename U>
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit
+#ifdef KOKKOS_ENABLE_CXX20
+      (Impl::needs_explicit_conversion_v<U, value_type>)
+#endif
+          basic_simd(basic_simd<U, abi_type> const& other) noexcept
+      : m_value(basic_simd(
+            [&](std::size_t i) { return static_cast<value_type>(other[i]); })) {
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION basic_simd(
+      basic_simd<float, abi_type> const& other) noexcept;
   template <class G,
             std::enable_if_t<
                 // basically, can you do { value_type r =
@@ -649,6 +664,17 @@ class basic_simd<float, simd_abi::neon_fixed_size<2>> {
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit basic_simd(
       float32x2_t const& value_in) noexcept
       : m_value(value_in) {}
+  template <typename U>
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit
+#ifdef KOKKOS_ENABLE_CXX20
+      (Impl::needs_explicit_conversion_v<U, value_type>)
+#endif
+          basic_simd(basic_simd<U, abi_type> const& other) noexcept
+      : m_value(basic_simd(
+            [&](std::size_t i) { return static_cast<value_type>(other[i]); })) {
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit basic_simd(
+      basic_simd<double, abi_type> const& other) noexcept;
   template <class G,
             std::enable_if_t<
                 std::is_invocable_r_v<value_type, G,
@@ -891,6 +917,15 @@ class basic_simd<float, simd_abi::neon_fixed_size<4>> {
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit basic_simd(
       float32x4_t const& value_in) noexcept
       : m_value(value_in) {}
+  template <typename U>
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit
+#ifdef KOKKOS_ENABLE_CXX20
+      (Impl::needs_explicit_conversion_v<U, value_type>)
+#endif
+          basic_simd(basic_simd<U, abi_type> const& other) noexcept
+      : m_value(basic_simd(
+            [&](std::size_t i) { return static_cast<value_type>(other[i]); })) {
+  }
   template <class G,
             std::enable_if_t<
                 std::is_invocable_r_v<value_type, G,
@@ -1139,6 +1174,17 @@ class basic_simd<std::int32_t, simd_abi::neon_fixed_size<2>> {
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit basic_simd(
       int32x2_t const& value_in) noexcept
       : m_value(value_in) {}
+  template <typename U>
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit
+#ifdef KOKKOS_ENABLE_CXX20
+      (Impl::needs_explicit_conversion_v<U, value_type>)
+#endif
+          basic_simd(basic_simd<U, abi_type> const& other) noexcept
+      : m_value(basic_simd(
+            [&](std::size_t i) { return static_cast<value_type>(other[i]); })) {
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit basic_simd(
+      basic_simd<std::int64_t, abi_type> const& other) noexcept;
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit basic_simd(
       basic_simd<std::uint64_t, abi_type> const& other) noexcept;
   template <class G,
@@ -1340,8 +1386,15 @@ class basic_simd<std::int32_t, simd_abi::neon_fixed_size<4>> {
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit basic_simd(
       int32x4_t const& value_in) noexcept
       : m_value(value_in) {}
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit basic_simd(
-      basic_simd<std::uint64_t, abi_type> const& other) noexcept;
+  template <typename U>
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit
+#ifdef KOKKOS_ENABLE_CXX20
+      (Impl::needs_explicit_conversion_v<U, value_type>)
+#endif
+          basic_simd(basic_simd<U, abi_type> const& other) noexcept
+      : m_value(basic_simd(
+            [&](std::size_t i) { return static_cast<value_type>(other[i]); })) {
+  }
   template <class G,
             std::enable_if_t<
                 std::is_invocable_r_v<value_type, G,
@@ -1547,8 +1600,19 @@ class basic_simd<std::int64_t, simd_abi::neon_fixed_size<2>> {
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit basic_simd(
       int64x2_t const& value_in) noexcept
       : m_value(value_in) {}
+  template <typename U>
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit
+#ifdef KOKKOS_ENABLE_CXX20
+      (Impl::needs_explicit_conversion_v<U, value_type>)
+#endif
+          basic_simd(basic_simd<U, abi_type> const& other) noexcept
+      : m_value(basic_simd(
+            [&](std::size_t i) { return static_cast<value_type>(other[i]); })) {
+  }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit basic_simd(
-      basic_simd<std::uint64_t, abi_type> const&) noexcept;
+      basic_simd<std::uint64_t, abi_type> const& other) noexcept;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION basic_simd(
+      basic_simd<std::int32_t, abi_type> const& other) noexcept;
   template <class G,
             std::enable_if_t<
                 std::is_invocable_r_v<value_type, G,
@@ -1747,10 +1811,19 @@ class basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>> {
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit basic_simd(
       uint64x2_t const& value_in) noexcept
       : m_value(value_in) {}
+  template <typename U>
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit
+#ifdef KOKKOS_ENABLE_CXX20
+      (Impl::needs_explicit_conversion_v<U, value_type>)
+#endif
+          basic_simd(basic_simd<U, abi_type> const& other) noexcept
+      : m_value(basic_simd(
+            [&](std::size_t i) { return static_cast<value_type>(other[i]); })) {
+  }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION explicit basic_simd(
-      basic_simd<std::int32_t, abi_type> const& other) noexcept
-      : m_value(
-            vreinterpretq_u64_s64(vmovl_s32(static_cast<int32x2_t>(other)))) {}
+      basic_simd<std::int64_t, abi_type> const& other) noexcept;
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION basic_simd(
+      basic_simd<std::int32_t, abi_type> const& other) noexcept;
   template <class G,
             std::enable_if_t<
                 std::is_invocable_r_v<value_type, G,
@@ -1859,19 +1932,6 @@ class basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>> {
 };
 
 KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
-basic_simd<std::int32_t, simd_abi::neon_fixed_size<2>>::basic_simd(
-    basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>> const&
-        other) noexcept
-    : m_value(
-          vmovn_s64(vreinterpretq_s64_u64(static_cast<uint64x2_t>(other)))) {}
-
-KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
-basic_simd<std::int64_t, simd_abi::neon_fixed_size<2>>::basic_simd(
-    basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>> const&
-        other) noexcept
-    : m_value(vreinterpretq_s64_u64(static_cast<uint64x2_t>(other))) {}
-
-KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
 basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>> abs(
     basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>> const& a) {
   return a;
@@ -1917,6 +1977,54 @@ basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>> condition(
   return basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>>(
       vbslq_u64(static_cast<uint64x2_t>(a), static_cast<uint64x2_t>(b),
                 static_cast<uint64x2_t>(c)));
+}
+
+KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+basic_simd<double, simd_abi::neon_fixed_size<2>>::basic_simd(
+    basic_simd<float, simd_abi::neon_fixed_size<2>> const& other) noexcept
+    : m_value(vcvt_f64_f32(static_cast<float32x2_t>(other))) {}
+
+KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+basic_simd<float, simd_abi::neon_fixed_size<2>>::basic_simd(
+    basic_simd<double, simd_abi::neon_fixed_size<2>> const& other) noexcept
+    : m_value(vcvtx_f32_f64(static_cast<float64x2_t>(other))) {}
+
+KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+basic_simd<std::int32_t, simd_abi::neon_fixed_size<2>>::basic_simd(
+    basic_simd<std::int64_t, simd_abi::neon_fixed_size<2>> const&
+        other) noexcept
+    : m_value(vmovn_s64(static_cast<int64x2_t>(other))) {}
+
+KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+basic_simd<std::int32_t, simd_abi::neon_fixed_size<2>>::basic_simd(
+    basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>> const&
+        other) noexcept
+    : m_value(vreinterpret_s32_u32(vmovn_u64(static_cast<uint64x2_t>(other)))) {
+}
+
+KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+basic_simd<std::int64_t, simd_abi::neon_fixed_size<2>>::basic_simd(
+    basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>> const&
+        other) noexcept
+    : m_value(vreinterpretq_s64_u64(static_cast<uint64x2_t>(other))) {}
+
+KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+basic_simd<std::int64_t, simd_abi::neon_fixed_size<2>>::basic_simd(
+    basic_simd<std::int32_t, simd_abi::neon_fixed_size<2>> const&
+        other) noexcept
+    : m_value(vmovl_s32(static_cast<int32x2_t>(other))) {}
+
+KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>>::basic_simd(
+    basic_simd<std::int64_t, simd_abi::neon_fixed_size<2>> const&
+        other) noexcept
+    : m_value(vreinterpretq_u64_s64(static_cast<int64x2_t>(other))) {}
+
+KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+basic_simd<std::uint64_t, simd_abi::neon_fixed_size<2>>::basic_simd(
+    basic_simd<std::int32_t, simd_abi::neon_fixed_size<2>> const&
+        other) noexcept
+    : m_value(vreinterpretq_u64_s64(vmovl_s32(static_cast<int32x2_t>(other)))) {
 }
 
 template <>
