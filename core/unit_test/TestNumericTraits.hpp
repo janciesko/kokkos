@@ -56,14 +56,7 @@ struct extrema {
 
   DEFINE_EXTREMA(float, -FLT_MAX, FLT_MAX)
   DEFINE_EXTREMA(double, -DBL_MAX, DBL_MAX)
-
-#if !defined(KOKKOS_ENABLE_CUDA) || \
-    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double
   DEFINE_EXTREMA(long double, -LDBL_MAX, LDBL_MAX)
-#else
-  static long double min(long double) { return -LDBL_MAX; }
-  static long double max(long double) { return LDBL_MAX; }
-#endif
 
 #undef DEFINE_EXTREMA
 };
