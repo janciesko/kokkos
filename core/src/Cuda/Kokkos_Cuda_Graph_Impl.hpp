@@ -201,8 +201,6 @@ struct GraphImpl<Kokkos::Cuda> {
   }
 
   void submit(const execution_space& exec) {
-    desul::ensure_cuda_lock_arrays_on_device();
-
     if (!bool(m_graph_exec)) {
       instantiate();
     }

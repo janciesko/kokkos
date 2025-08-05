@@ -214,8 +214,6 @@ inline void GraphImpl<Kokkos::HIP>::add_predecessor(
 }
 
 inline void GraphImpl<Kokkos::HIP>::submit(const Kokkos::HIP& exec) {
-  desul::ensure_hip_lock_arrays_on_device();
-
   if (!m_graph_exec) {
     instantiate();
   }

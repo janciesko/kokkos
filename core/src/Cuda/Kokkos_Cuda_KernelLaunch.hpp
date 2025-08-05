@@ -677,8 +677,6 @@ struct CudaParallelLaunchImpl<
             desired_occupancy);
       }
 
-      desul::ensure_cuda_lock_arrays_on_device();
-
       // Invoke the driver function on the device
       base_t::invoke_kernel(driver, grid, block, shmem, cuda_instance);
 
@@ -708,33 +706,23 @@ template <class DriverType, class LaunchBounds = Kokkos::LaunchBounds<>,
           CudaLaunchMechanism LaunchMechanism =
               DeduceCudaLaunchMechanism<DriverType>::launch_mechanism,
           bool DoGraph = DriverType::Policy::is_graph_kernel::value>
-struct CudaParallelLaunch;
-
-// General launch mechanism
-template <class DriverType, class LaunchBounds,
-          CudaLaunchMechanism LaunchMechanism>
-struct CudaParallelLaunch<DriverType, LaunchBounds, LaunchMechanism,
-                          /* DoGraph = */ false>
+struct CudaParallelLaunch
     : CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism> {
   using base_t =
       CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism>;
-  template <class... Args>
-  CudaParallelLaunch(Args&&... args) {
-    base_t::launch_kernel((Args&&)args...);
-  }
-};
+  CudaParallelLaunch(const DriverType& driver, const dim3& grid,
+                     const dim3& block, const int shmem,
+                     const CudaInternal* cuda_instance) {
+    if (!Impl::is_empty_launch(grid, block)) {
+      desul::ensure_cuda_lock_arrays_on_device();
+    }
 
-// Launch mechanism for creating graph nodes
-template <class DriverType, class LaunchBounds,
-          CudaLaunchMechanism LaunchMechanism>
-struct CudaParallelLaunch<DriverType, LaunchBounds, LaunchMechanism,
-                          /* DoGraph = */ true>
-    : CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism> {
-  using base_t =
-      CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism>;
-  template <class... Args>
-  CudaParallelLaunch(Args&&... args) {
-    base_t::create_parallel_launch_graph_node((Args&&)args...);
+    if constexpr (DoGraph) {
+      base_t::create_parallel_launch_graph_node(driver, grid, block, shmem,
+                                                cuda_instance);
+    } else {
+      base_t::launch_kernel(driver, grid, block, shmem, cuda_instance);
+    }
   }
 };
 

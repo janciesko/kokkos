@@ -582,13 +582,11 @@ struct HIPParallelLaunch<
                     const dim3 &block, const unsigned int shmem,
                     const HIPInternal *hip_instance,
                     const bool /*prefer_shmem*/) {
-    if ((grid.x != 0) && ((block.x * block.y * block.z) != 0)) {
+    if (!is_empty_launch(grid, block)) {
       if (hip_instance->m_deviceProp.sharedMemPerBlock < shmem) {
         Kokkos::Impl::throw_runtime_exception(
             "HIPParallelLaunch FAILED: shared memory request is too large");
       }
-
-      desul::ensure_hip_lock_arrays_on_device();
 
       // Invoke the driver function on the device
       base_t::invoke_kernel(driver, grid, block, shmem, hip_instance);
@@ -613,6 +611,10 @@ void hip_parallel_launch(const DriverType &driver, const dim3 &grid,
                          const dim3 &block, const int shmem,
                          const HIPInternal *hip_instance,
                          const bool prefer_shmem) {
+  if (!is_empty_launch(grid, block)) {
+    desul::ensure_hip_lock_arrays_on_device();
+  }
+
 #ifdef KOKKOS_IMPL_HIP_NATIVE_GRAPH
   if constexpr (DoGraph) {
     // Graph launch
