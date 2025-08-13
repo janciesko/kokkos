@@ -18,7 +18,7 @@ jobs:
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         repository: kokkos/mdspan
-        ref: ${{ env.ref }}
+        ref: 824e64939dbac287425b1555d6c6950419aa9863
         path: kokkos-mdspan
     - run: |
         rm kokkos-mdspan/include/experimental/mdarray
