@@ -773,7 +773,6 @@ if(KOKKOS_ARCH_NATIVE)
     check_cxx_symbol_exists(__ARM_NEON "" KOKKOS_COMPILER_HAS_ARM_NEON)
     unset(KOKKOS_COMPILER_HAS_AVX CACHE)
     check_cxx_symbol_exists(__AVX__ "" KOKKOS_COMPILER_HAS_AVX)
-    set(CMAKE_REQUIRED_FLAGS "${KOKKOS_COMPILE_OPTIONS}")
 
     unset(CMAKE_REQUIRED_QUIET)
     unset(CMAKE_REQUIRED_FLAGS)
@@ -918,6 +917,7 @@ if(KOKKOS_ENABLE_SYCL)
   endif()
 
   check_cxx_symbol_exists(SYCL_EXT_ONEAPI_GRAPH "sycl/sycl.hpp" KOKKOS_IMPL_HAVE_SYCL_EXT_ONEAPI_GRAPH)
+  unset(CMAKE_REQUIRED_FLAGS)
 endif()
 
 set(CUDA_ARCH_ALREADY_SPECIFIED "")
