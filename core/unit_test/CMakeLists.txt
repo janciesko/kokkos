@@ -150,6 +150,8 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;OpenACC;HIP;SYCL)
       AtomicOperations_complexfloat
       AtomicOperations_double
       AtomicOperations_float
+      AtomicOperations_int8
+      AtomicOperations_int16
       AtomicOperations_int
       AtomicOperations_longint
       AtomicOperations_longlongint
