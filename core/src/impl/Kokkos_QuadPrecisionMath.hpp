@@ -42,10 +42,20 @@ struct reduction_identity<__float128> {
     return static_cast<__float128>(1.0);
   }
   KOKKOS_FORCEINLINE_FUNCTION constexpr static __float128 max() {
-    return -FLT128_MAX;
+    using namespace Kokkos::Experimental;
+#if __FINITE_MATH_ONLY__
+    return finite_min_v<__float128>;
+#else
+    return -infinity_v<__float128>;
+#endif
   }
   KOKKOS_FORCEINLINE_FUNCTION constexpr static __float128 min() {
-    return FLT128_MAX;
+    using namespace Kokkos::Experimental;
+#if __FINITE_MATH_ONLY__
+    return finite_max_v<__float128>;
+#else
+    return infinity_v<__float128>;
+#endif
   }
 };
 }  // namespace Kokkos
