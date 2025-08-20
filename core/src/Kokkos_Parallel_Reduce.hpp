@@ -30,29 +30,75 @@ static_assert(false,
 
 namespace Kokkos {
 
+// \brief Class offering functionalities common to all reducers
+//
+// In order to be a valid reducer, a class must implement the functions and
+// define the types offered in this class.
+// To facilitate implementation, a new reducer class can simply inherit from
+// BaseReducer.
+namespace Impl {
 template <class Scalar, class Space>
-struct Sum {
+struct BaseReducer {
  public:
-  // Required
-  using reducer    = Sum<Scalar, Space>;
-  using value_type = std::remove_cv_t<Scalar>;
-  static_assert(!std::is_pointer_v<value_type> && !std::is_array_v<value_type>);
-
+  // Following types need to be available for the reducer to be valid
+  using value_type       = std::remove_cv_t<Scalar>;
   using result_view_type = Kokkos::View<value_type, Space>;
 
- private:
+  static_assert(!std::is_pointer_v<value_type> && !std::is_array_v<value_type>);
+
+ protected:
+  // Contains the value of the reduction
   result_view_type value;
+  // Whether the reducer returns its value through a Kokkos::View or a scalar
   bool references_scalar_v;
 
  public:
+  // Construct from a scalar value
   KOKKOS_INLINE_FUNCTION
-  Sum(value_type& value_) : value(&value_), references_scalar_v(true) {}
+  BaseReducer(value_type& value_) : value(&value_), references_scalar_v(true) {}
 
+  // Construct from a View
   KOKKOS_INLINE_FUNCTION
-  Sum(const result_view_type& value_)
+  BaseReducer(const result_view_type& value_)
       : value(value_), references_scalar_v(false) {}
 
-  // Required
+  // Reducers also need to implement the two following functions:
+  // KOKKOS_INLINE_FUNCTION
+  // void join(value_type& dest, const value_type& src) const {
+  //    // Do the reduction operation here
+  // }
+
+  // KOKKOS_INLINE_FUNCTION
+  // void init(value_type& val) const {
+  //   // Return the neutral value for the reduction operation, for instance
+  //   // FLOAT_MIN if searching for the max, 0 for a sum or 1 for a product).
+  // }
+  //
+
+  // Needed accessors
+  KOKKOS_INLINE_FUNCTION
+  value_type& reference() const { return *value.data(); }
+
+  KOKKOS_INLINE_FUNCTION
+  result_view_type view() const { return value; }
+
+  KOKKOS_INLINE_FUNCTION
+  bool references_scalar() const { return references_scalar_v; }
+};
+}  // namespace Impl
+
+template <class Scalar, class Space>
+struct Sum : Impl::BaseReducer<Scalar, Space> {
+ private:
+  using parent_type = Impl::BaseReducer<Scalar, Space>;
+
+ public:
+  using reducer    = Sum<Scalar, Space>;
+  using value_type = typename parent_type::value_type;
+
+  // Inherit constructors
+  using parent_type::parent_type;
+
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const { dest += src; }
 
@@ -60,15 +106,6 @@ struct Sum {
   void init(value_type& val) const {
     val = reduction_identity<value_type>::sum();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename... Properties>
@@ -76,28 +113,17 @@ KOKKOS_DEDUCTION_GUIDE Sum(View<Scalar, Properties...> const&)
     -> Sum<Scalar, typename View<Scalar, Properties...>::memory_space>;
 
 template <class Scalar, class Space>
-struct Prod {
- public:
-  // Required
-  using reducer    = Prod<Scalar, Space>;
-  using value_type = std::remove_cv_t<Scalar>;
-  static_assert(!std::is_pointer_v<value_type> && !std::is_array_v<value_type>);
-
-  using result_view_type = Kokkos::View<value_type, Space>;
-
+struct Prod : Impl::BaseReducer<Scalar, Space> {
  private:
-  result_view_type value;
-  bool references_scalar_v;
+  using parent_type = Impl::BaseReducer<Scalar, Space>;
 
  public:
-  KOKKOS_INLINE_FUNCTION
-  Prod(value_type& value_) : value(&value_), references_scalar_v(true) {}
+  using reducer    = Prod<Scalar, Space>;
+  using value_type = typename parent_type::value_type;
 
-  KOKKOS_INLINE_FUNCTION
-  Prod(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
+  // Inherit constructors
+  using parent_type::parent_type;
 
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const { dest *= src; }
 
@@ -105,15 +131,6 @@ struct Prod {
   void init(value_type& val) const {
     val = reduction_identity<value_type>::prod();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename... Properties>
@@ -121,28 +138,17 @@ KOKKOS_DEDUCTION_GUIDE Prod(View<Scalar, Properties...> const&)
     -> Prod<Scalar, typename View<Scalar, Properties...>::memory_space>;
 
 template <class Scalar, class Space>
-struct Min {
- public:
-  // Required
-  using reducer    = Min<Scalar, Space>;
-  using value_type = std::remove_cv_t<Scalar>;
-  static_assert(!std::is_pointer_v<value_type> && !std::is_array_v<value_type>);
-
-  using result_view_type = Kokkos::View<value_type, Space>;
-
+struct Min : Impl::BaseReducer<Scalar, Space> {
  private:
-  result_view_type value;
-  bool references_scalar_v;
+  using parent_type = Impl::BaseReducer<Scalar, Space>;
 
  public:
-  KOKKOS_INLINE_FUNCTION
-  Min(value_type& value_) : value(&value_), references_scalar_v(true) {}
+  using reducer    = Min<Scalar, Space>;
+  using value_type = typename parent_type::value_type;
 
-  KOKKOS_INLINE_FUNCTION
-  Min(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
+  // Inherit constructors
+  using parent_type::parent_type;
 
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     if (src < dest) dest = src;
@@ -152,15 +158,6 @@ struct Min {
   void init(value_type& val) const {
     val = reduction_identity<value_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename... Properties>
@@ -168,47 +165,26 @@ KOKKOS_DEDUCTION_GUIDE Min(View<Scalar, Properties...> const&)
     -> Min<Scalar, typename View<Scalar, Properties...>::memory_space>;
 
 template <class Scalar, class Space>
-struct Max {
- public:
-  // Required
-  using reducer    = Max<Scalar, Space>;
-  using value_type = std::remove_cv_t<Scalar>;
-  static_assert(!std::is_pointer_v<value_type> && !std::is_array_v<value_type>);
-
-  using result_view_type = Kokkos::View<value_type, Space>;
-
+struct Max : Impl::BaseReducer<Scalar, Space> {
  private:
-  result_view_type value;
-  bool references_scalar_v;
+  using parent_type = Impl::BaseReducer<Scalar, Space>;
 
  public:
-  KOKKOS_INLINE_FUNCTION
-  Max(value_type& value_) : value(&value_), references_scalar_v(true) {}
+  using reducer    = Max<Scalar, Space>;
+  using value_type = typename parent_type::value_type;
 
-  KOKKOS_INLINE_FUNCTION
-  Max(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
+  // Inherit constructors
+  using parent_type::parent_type;
 
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     if (src > dest) dest = src;
   }
 
-  // Required
   KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val = reduction_identity<value_type>::max();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename... Properties>
@@ -216,26 +192,16 @@ KOKKOS_DEDUCTION_GUIDE Max(View<Scalar, Properties...> const&)
     -> Max<Scalar, typename View<Scalar, Properties...>::memory_space>;
 
 template <class Scalar, class Space>
-struct LAnd {
- public:
-  // Required
-  using reducer    = LAnd<Scalar, Space>;
-  using value_type = std::remove_cv_t<Scalar>;
-  static_assert(!std::is_pointer_v<value_type> && !std::is_array_v<value_type>);
-
-  using result_view_type = Kokkos::View<value_type, Space>;
-
+struct LAnd : Impl::BaseReducer<Scalar, Space> {
  private:
-  result_view_type value;
-  bool references_scalar_v;
+  using parent_type = Impl::BaseReducer<Scalar, Space>;
 
  public:
-  KOKKOS_INLINE_FUNCTION
-  LAnd(value_type& value_) : value(&value_), references_scalar_v(true) {}
+  using reducer    = LAnd<Scalar, Space>;
+  using value_type = typename parent_type::value_type;
 
-  KOKKOS_INLINE_FUNCTION
-  LAnd(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
+  // Inherit constructors
+  using parent_type::parent_type;
 
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
@@ -246,15 +212,6 @@ struct LAnd {
   void init(value_type& val) const {
     val = reduction_identity<value_type>::land();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename... Properties>
@@ -262,28 +219,17 @@ KOKKOS_DEDUCTION_GUIDE LAnd(View<Scalar, Properties...> const&)
     -> LAnd<Scalar, typename View<Scalar, Properties...>::memory_space>;
 
 template <class Scalar, class Space>
-struct LOr {
- public:
-  // Required
-  using reducer    = LOr<Scalar, Space>;
-  using value_type = std::remove_cv_t<Scalar>;
-  static_assert(!std::is_pointer_v<value_type> && !std::is_array_v<value_type>);
-
-  using result_view_type = Kokkos::View<value_type, Space>;
-
+struct LOr : Impl::BaseReducer<Scalar, Space> {
  private:
-  result_view_type value;
-  bool references_scalar_v;
+  using parent_type = Impl::BaseReducer<Scalar, Space>;
 
  public:
-  KOKKOS_INLINE_FUNCTION
-  LOr(value_type& value_) : value(&value_), references_scalar_v(true) {}
+  using reducer    = LOr<Scalar, Space>;
+  using value_type = typename parent_type::value_type;
 
-  KOKKOS_INLINE_FUNCTION
-  LOr(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
+  // Inherit constructors
+  using parent_type::parent_type;
 
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     dest = dest || src;
@@ -293,15 +239,6 @@ struct LOr {
   void init(value_type& val) const {
     val = reduction_identity<value_type>::lor();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename... Properties>
@@ -309,28 +246,17 @@ KOKKOS_DEDUCTION_GUIDE LOr(View<Scalar, Properties...> const&)
     -> LOr<Scalar, typename View<Scalar, Properties...>::memory_space>;
 
 template <class Scalar, class Space>
-struct BAnd {
- public:
-  // Required
-  using reducer    = BAnd<Scalar, Space>;
-  using value_type = std::remove_cv_t<Scalar>;
-  static_assert(!std::is_pointer_v<value_type> && !std::is_array_v<value_type>);
-
-  using result_view_type = Kokkos::View<value_type, Space>;
-
+struct BAnd : Impl::BaseReducer<Scalar, Space> {
  private:
-  result_view_type value;
-  bool references_scalar_v;
+  using parent_type = Impl::BaseReducer<Scalar, Space>;
 
  public:
-  KOKKOS_INLINE_FUNCTION
-  BAnd(value_type& value_) : value(&value_), references_scalar_v(true) {}
+  using reducer    = BAnd<Scalar, Space>;
+  using value_type = typename parent_type::value_type;
 
-  KOKKOS_INLINE_FUNCTION
-  BAnd(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
+  // Inherit constructors
+  using parent_type::parent_type;
 
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     dest = dest & src;
@@ -340,15 +266,6 @@ struct BAnd {
   void init(value_type& val) const {
     val = reduction_identity<value_type>::band();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename... Properties>
@@ -356,28 +273,17 @@ KOKKOS_DEDUCTION_GUIDE BAnd(View<Scalar, Properties...> const&)
     -> BAnd<Scalar, typename View<Scalar, Properties...>::memory_space>;
 
 template <class Scalar, class Space>
-struct BOr {
- public:
-  // Required
-  using reducer    = BOr<Scalar, Space>;
-  using value_type = std::remove_cv_t<Scalar>;
-  static_assert(!std::is_pointer_v<value_type> && !std::is_array_v<value_type>);
-
-  using result_view_type = Kokkos::View<value_type, Space>;
-
+struct BOr : Impl::BaseReducer<Scalar, Space> {
  private:
-  result_view_type value;
-  bool references_scalar_v;
+  using parent_type = Impl::BaseReducer<Scalar, Space>;
 
  public:
-  KOKKOS_INLINE_FUNCTION
-  BOr(value_type& value_) : value(&value_), references_scalar_v(true) {}
+  using reducer    = BOr<Scalar, Space>;
+  using value_type = typename parent_type::value_type;
 
-  KOKKOS_INLINE_FUNCTION
-  BOr(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
+  // Inherit constructors
+  using parent_type::parent_type;
 
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     dest = dest | src;
@@ -387,15 +293,6 @@ struct BOr {
   void init(value_type& val) const {
     val = reduction_identity<value_type>::bor();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename... Properties>
@@ -409,39 +306,32 @@ struct ValLocScalar {
 };
 
 template <class Scalar, class Index, class Space>
-struct MinLoc {
+struct MinLoc
+    : Impl::BaseReducer<
+          ValLocScalar<std::remove_cv_t<Scalar>, std::remove_cv_t<Index>>,
+          Space> {
  private:
   using scalar_type = std::remove_cv_t<Scalar>;
   using index_type  = std::remove_cv_t<Index>;
+  using parent_type =
+      Impl::BaseReducer<ValLocScalar<scalar_type, index_type>, Space>;
+
   static_assert(!std::is_pointer_v<scalar_type> &&
                 !std::is_array_v<scalar_type>);
 
  public:
-  // Required
   using reducer    = MinLoc<Scalar, Index, Space>;
-  using value_type = ValLocScalar<scalar_type, index_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = Kokkos::View<value_type, Space>;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
-
- public:
-  KOKKOS_INLINE_FUNCTION
-  MinLoc(value_type& value_) : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  MinLoc(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    if (src.val < dest.val)
+    if (src.val < dest.val) {
       dest = src;
-    else if (src.val == dest.val &&
-             dest.loc == reduction_identity<index_type>::min()) {
+    } else if (src.val == dest.val &&
+               dest.loc == reduction_identity<index_type>::min()) {
       dest.loc = src.loc;
     }
   }
@@ -451,15 +341,6 @@ struct MinLoc {
     val.val = reduction_identity<scalar_type>::min();
     val.loc = reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename Index, typename... Properties>
@@ -469,39 +350,33 @@ MinLoc(View<ValLocScalar<Scalar, Index>, Properties...> const&) -> MinLoc<
     typename View<ValLocScalar<Scalar, Index>, Properties...>::memory_space>;
 
 template <class Scalar, class Index, class Space>
-struct MaxLoc {
+struct MaxLoc
+    : Impl::BaseReducer<
+          ValLocScalar<std::remove_cv_t<Scalar>, std::remove_cv_t<Index>>,
+          Space> {
  private:
   using scalar_type = std::remove_cv_t<Scalar>;
   using index_type  = std::remove_cv_t<Index>;
+  using parent_type =
+      Impl::BaseReducer<ValLocScalar<scalar_type, index_type>, Space>;
+
   static_assert(!std::is_pointer_v<scalar_type> &&
                 !std::is_array_v<scalar_type>);
 
  public:
-  // Required
-  using reducer    = MaxLoc<Scalar, Index, Space>;
-  using value_type = ValLocScalar<scalar_type, index_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = Kokkos::View<value_type, Space>;
+  using reducer = MaxLoc<Scalar, Index, Space>;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- public:
-  KOKKOS_INLINE_FUNCTION
-  MaxLoc(value_type& value_) : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  MaxLoc(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    if (src.val > dest.val)
+    if (src.val > dest.val) {
       dest = src;
-    else if (src.val == dest.val &&
-             dest.loc == reduction_identity<index_type>::min()) {
+    } else if (src.val == dest.val &&
+               dest.loc == reduction_identity<index_type>::min()) {
       dest.loc = src.loc;
     }
   }
@@ -511,15 +386,6 @@ struct MaxLoc {
     val.val = reduction_identity<scalar_type>::max();
     val.loc = reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename Index, typename... Properties>
@@ -534,32 +400,24 @@ struct MinMaxScalar {
 };
 
 template <class Scalar, class Space>
-struct MinMax {
+struct MinMax
+    : Impl::BaseReducer<MinMaxScalar<std::remove_cv_t<Scalar>>, Space> {
  private:
   using scalar_type = std::remove_cv_t<Scalar>;
+  using parent_type =
+      Impl::BaseReducer<MinMaxScalar<std::remove_cv_t<Scalar>>, Space>;
+
   static_assert(!std::is_pointer_v<scalar_type> &&
                 !std::is_array_v<scalar_type>);
 
  public:
-  // Required
-  using reducer    = MinMax<Scalar, Space>;
-  using value_type = MinMaxScalar<scalar_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = Kokkos::View<value_type, Space>;
+  using reducer = MinMax<Scalar, Space>;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- public:
-  KOKKOS_INLINE_FUNCTION
-  MinMax(value_type& value_) : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  MinMax(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     if (src.min_val < dest.min_val) {
@@ -575,15 +433,6 @@ struct MinMax {
     val.max_val = reduction_identity<scalar_type>::max();
     val.min_val = reduction_identity<scalar_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename... Properties>
@@ -598,33 +447,26 @@ struct MinMaxLocScalar {
 };
 
 template <class Scalar, class Index, class Space>
-struct MinMaxLoc {
+struct MinMaxLoc
+    : Impl::BaseReducer<
+          MinMaxLocScalar<std::remove_cv_t<Scalar>, std::remove_cv_t<Index>>,
+          Space> {
  private:
   using scalar_type = std::remove_cv_t<Scalar>;
   using index_type  = std::remove_cv_t<Index>;
+  using parent_type =
+      Impl::BaseReducer<MinMaxLocScalar<scalar_type, index_type>, Space>;
+
   static_assert(!std::is_pointer_v<scalar_type> &&
                 !std::is_array_v<scalar_type>);
 
  public:
-  // Required
   using reducer    = MinMaxLoc<Scalar, Index, Space>;
-  using value_type = MinMaxLocScalar<scalar_type, index_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = Kokkos::View<value_type, Space>;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
-
- public:
-  KOKKOS_INLINE_FUNCTION
-  MinMaxLoc(value_type& value_) : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  MinMaxLoc(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     if (src.min_val < dest.min_val) {
@@ -650,15 +492,6 @@ struct MinMaxLoc {
     val.max_loc = reduction_identity<index_type>::min();
     val.min_loc = reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename Index, typename... Properties>
@@ -676,34 +509,27 @@ KOKKOS_DEDUCTION_GUIDE MinMaxLoc(
 // MaxFirstLoc
 //
 template <class Scalar, class Index, class Space>
-struct MaxFirstLoc {
+struct MaxFirstLoc
+    : Impl::BaseReducer<
+          ValLocScalar<std::remove_cv_t<Scalar>, std::remove_cv_t<Index>>,
+          Space> {
  private:
   using scalar_type = std::remove_cv_t<Scalar>;
   using index_type  = std::remove_cv_t<Index>;
+  using parent_type =
+      Impl::BaseReducer<ValLocScalar<scalar_type, index_type>, Space>;
+
   static_assert(!std::is_pointer_v<scalar_type> &&
                 !std::is_array_v<scalar_type>);
   static_assert(std::is_integral_v<index_type>);
 
  public:
-  // Required
   using reducer    = MaxFirstLoc<Scalar, Index, Space>;
-  using value_type = ::Kokkos::ValLocScalar<scalar_type, index_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = ::Kokkos::View<value_type, Space>;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
-
- public:
-  KOKKOS_INLINE_FUNCTION
-  MaxFirstLoc(value_type& value_) : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  MaxFirstLoc(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     if (dest.val < src.val) {
@@ -718,15 +544,6 @@ struct MaxFirstLoc {
     val.val = reduction_identity<scalar_type>::max();
     val.loc = reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename Index, typename... Properties>
@@ -741,38 +558,39 @@ KOKKOS_DEDUCTION_GUIDE MaxFirstLoc(
 // recall that comp(a,b) returns true is a < b
 //
 template <class Scalar, class Index, class ComparatorType, class Space>
-struct MaxFirstLocCustomComparator {
+struct MaxFirstLocCustomComparator
+    : Impl::BaseReducer<
+          ValLocScalar<std::remove_cv_t<Scalar>, std::remove_cv_t<Index>>,
+          Space> {
  private:
   using scalar_type = std::remove_cv_t<Scalar>;
   using index_type  = std::remove_cv_t<Index>;
+  using parent_type =
+      Impl::BaseReducer<ValLocScalar<scalar_type, index_type>, Space>;
+
   static_assert(!std::is_pointer_v<scalar_type> &&
                 !std::is_array_v<scalar_type>);
   static_assert(std::is_integral_v<index_type>);
 
  public:
-  // Required
   using reducer =
       MaxFirstLocCustomComparator<Scalar, Index, ComparatorType, Space>;
-  using value_type = ::Kokkos::ValLocScalar<scalar_type, index_type>;
-
-  using result_view_type = ::Kokkos::View<value_type, Space>;
+  using value_type       = typename parent_type::value_type;
+  using result_view_type = typename parent_type::result_view_type;
 
  private:
-  result_view_type value;
-  bool references_scalar_v;
   ComparatorType m_comp;
 
  public:
   KOKKOS_INLINE_FUNCTION
   MaxFirstLocCustomComparator(value_type& value_, ComparatorType comp_)
-      : value(&value_), references_scalar_v(true), m_comp(comp_) {}
+      : parent_type(value_), m_comp(comp_) {}
 
   KOKKOS_INLINE_FUNCTION
   MaxFirstLocCustomComparator(const result_view_type& value_,
                               ComparatorType comp_)
-      : value(value_), references_scalar_v(false), m_comp(comp_) {}
+      : parent_type(value_), m_comp(comp_) {}
 
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     if (m_comp(dest.val, src.val)) {
@@ -787,15 +605,6 @@ struct MaxFirstLocCustomComparator {
     val.val = reduction_identity<scalar_type>::max();
     val.loc = reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename Index, typename ComparatorType,
@@ -810,34 +619,27 @@ KOKKOS_DEDUCTION_GUIDE MaxFirstLocCustomComparator(
 // MinFirstLoc
 //
 template <class Scalar, class Index, class Space>
-struct MinFirstLoc {
+struct MinFirstLoc
+    : Impl::BaseReducer<
+          ValLocScalar<std::remove_cv_t<Scalar>, std::remove_cv_t<Index>>,
+          Space> {
  private:
   using scalar_type = std::remove_cv_t<Scalar>;
   using index_type  = std::remove_cv_t<Index>;
+  using parent_type =
+      Impl::BaseReducer<ValLocScalar<scalar_type, index_type>, Space>;
+
   static_assert(!std::is_pointer_v<scalar_type> &&
                 !std::is_array_v<scalar_type>);
   static_assert(std::is_integral_v<index_type>);
 
  public:
-  // Required
   using reducer    = MinFirstLoc<Scalar, Index, Space>;
-  using value_type = ::Kokkos::ValLocScalar<scalar_type, index_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = ::Kokkos::View<value_type, Space>;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
-
- public:
-  KOKKOS_INLINE_FUNCTION
-  MinFirstLoc(value_type& value_) : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  MinFirstLoc(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     if (src.val < dest.val) {
@@ -852,15 +654,6 @@ struct MinFirstLoc {
     val.val = reduction_identity<scalar_type>::min();
     val.loc = reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename Index, typename... Properties>
@@ -875,38 +668,39 @@ KOKKOS_DEDUCTION_GUIDE MinFirstLoc(
 // recall that comp(a,b) returns true is a < b
 //
 template <class Scalar, class Index, class ComparatorType, class Space>
-struct MinFirstLocCustomComparator {
+struct MinFirstLocCustomComparator
+    : Impl::BaseReducer<
+          ValLocScalar<std::remove_cv_t<Scalar>, std::remove_cv_t<Index>>,
+          Space> {
  private:
   using scalar_type = std::remove_cv_t<Scalar>;
   using index_type  = std::remove_cv_t<Index>;
+  using parent_type =
+      Impl::BaseReducer<ValLocScalar<scalar_type, index_type>, Space>;
+
   static_assert(!std::is_pointer_v<scalar_type> &&
                 !std::is_array_v<scalar_type>);
   static_assert(std::is_integral_v<index_type>);
 
  public:
-  // Required
   using reducer =
       MinFirstLocCustomComparator<Scalar, Index, ComparatorType, Space>;
-  using value_type = ::Kokkos::ValLocScalar<scalar_type, index_type>;
-
-  using result_view_type = ::Kokkos::View<value_type, Space>;
+  using value_type       = typename parent_type::value_type;
+  using result_view_type = typename parent_type::result_view_type;
 
  private:
-  result_view_type value;
-  bool references_scalar_v;
   ComparatorType m_comp;
 
  public:
   KOKKOS_INLINE_FUNCTION
   MinFirstLocCustomComparator(value_type& value_, ComparatorType comp_)
-      : value(&value_), references_scalar_v(true), m_comp(comp_) {}
+      : parent_type(value_), m_comp(comp_) {}
 
   KOKKOS_INLINE_FUNCTION
   MinFirstLocCustomComparator(const result_view_type& value_,
                               ComparatorType comp_)
-      : value(value_), references_scalar_v(false), m_comp(comp_) {}
+      : parent_type(value_), m_comp(comp_) {}
 
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     if (m_comp(src.val, dest.val)) {
@@ -921,15 +715,6 @@ struct MinFirstLocCustomComparator {
     val.val = reduction_identity<scalar_type>::min();
     val.loc = reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename Index, typename ComparatorType,
@@ -944,35 +729,26 @@ KOKKOS_DEDUCTION_GUIDE MinFirstLocCustomComparator(
 // MinMaxFirstLastLoc
 //
 template <class Scalar, class Index, class Space>
-struct MinMaxFirstLastLoc {
+struct MinMaxFirstLastLoc
+    : Impl::BaseReducer<
+          MinMaxLocScalar<std::remove_cv_t<Scalar>, std::remove_cv_t<Index>>,
+          Space> {
  private:
   using scalar_type = std::remove_cv_t<Scalar>;
   using index_type  = std::remove_cv_t<Index>;
+  using parent_type =
+      Impl::BaseReducer<MinMaxLocScalar<scalar_type, index_type>, Space>;
+
   static_assert(!std::is_pointer_v<scalar_type> &&
                 !std::is_array_v<scalar_type>);
-  static_assert(std::is_integral_v<index_type>);
 
  public:
-  // Required
   using reducer    = MinMaxFirstLastLoc<Scalar, Index, Space>;
-  using value_type = ::Kokkos::MinMaxLocScalar<scalar_type, index_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = ::Kokkos::View<value_type, Space>;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
-
- public:
-  KOKKOS_INLINE_FUNCTION
-  MinMaxFirstLastLoc(value_type& value_)
-      : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  MinMaxFirstLastLoc(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     if (src.min_val < dest.min_val) {
@@ -997,15 +773,6 @@ struct MinMaxFirstLastLoc {
     val.max_loc = ::Kokkos::reduction_identity<index_type>::max();
     val.min_loc = ::Kokkos::reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename Index, typename... Properties>
@@ -1020,38 +787,38 @@ KOKKOS_DEDUCTION_GUIDE MinMaxFirstLastLoc(
 // recall that comp(a,b) returns true is a < b
 //
 template <class Scalar, class Index, class ComparatorType, class Space>
-struct MinMaxFirstLastLocCustomComparator {
+struct MinMaxFirstLastLocCustomComparator
+    : Impl::BaseReducer<
+          MinMaxLocScalar<std::remove_cv_t<Scalar>, std::remove_cv_t<Index>>,
+          Space> {
  private:
   using scalar_type = std::remove_cv_t<Scalar>;
   using index_type  = std::remove_cv_t<Index>;
+  using parent_type =
+      Impl::BaseReducer<MinMaxLocScalar<scalar_type, index_type>, Space>;
+
   static_assert(!std::is_pointer_v<scalar_type> &&
                 !std::is_array_v<scalar_type>);
-  static_assert(std::is_integral_v<index_type>);
 
  public:
-  // Required
   using reducer =
       MinMaxFirstLastLocCustomComparator<Scalar, Index, ComparatorType, Space>;
-  using value_type = ::Kokkos::MinMaxLocScalar<scalar_type, index_type>;
-
-  using result_view_type = ::Kokkos::View<value_type, Space>;
+  using value_type       = typename parent_type::value_type;
+  using result_view_type = typename parent_type::result_view_type;
 
  private:
-  result_view_type value;
-  bool references_scalar_v;
   ComparatorType m_comp;
 
  public:
   KOKKOS_INLINE_FUNCTION
   MinMaxFirstLastLocCustomComparator(value_type& value_, ComparatorType comp_)
-      : value(&value_), references_scalar_v(true), m_comp(comp_) {}
+      : parent_type(value_), m_comp(comp_) {}
 
   KOKKOS_INLINE_FUNCTION
   MinMaxFirstLastLocCustomComparator(const result_view_type& value_,
                                      ComparatorType comp_)
-      : value(value_), references_scalar_v(false), m_comp(comp_) {}
+      : parent_type(value_), m_comp(comp_) {}
 
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     if (m_comp(src.min_val, dest.min_val)) {
@@ -1076,15 +843,6 @@ struct MinMaxFirstLastLocCustomComparator {
     val.max_loc = ::Kokkos::reduction_identity<index_type>::max();
     val.min_loc = ::Kokkos::reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Scalar, typename Index, typename ComparatorType,
@@ -1105,31 +863,23 @@ struct FirstLocScalar {
 };
 
 template <class Index, class Space>
-struct FirstLoc {
+struct FirstLoc
+    : Impl::BaseReducer<FirstLocScalar<std::remove_cv_t<Index>>, Space> {
  private:
   using index_type = std::remove_cv_t<Index>;
   static_assert(std::is_integral_v<index_type>);
+  static_assert(!std::is_pointer_v<index_type> && !std::is_array_v<index_type>);
+
+  using parent_type =
+      Impl::BaseReducer<FirstLocScalar<std::remove_cv_t<Index>>, Space>;
 
  public:
-  // Required
   using reducer    = FirstLoc<Index, Space>;
-  using value_type = FirstLocScalar<index_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = ::Kokkos::View<value_type, Space>;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
-
- public:
-  KOKKOS_INLINE_FUNCTION
-  FirstLoc(value_type& value_) : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  FirstLoc(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     dest.min_loc_true = (src.min_loc_true < dest.min_loc_true)
@@ -1141,15 +891,6 @@ struct FirstLoc {
   void init(value_type& val) const {
     val.min_loc_true = ::Kokkos::reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Index, typename... Properties>
@@ -1166,31 +907,22 @@ struct LastLocScalar {
 };
 
 template <class Index, class Space>
-struct LastLoc {
+struct LastLoc
+    : Impl::BaseReducer<LastLocScalar<std::remove_cv_t<Index>>, Space> {
  private:
   using index_type = std::remove_cv_t<Index>;
   static_assert(std::is_integral_v<index_type>);
+  static_assert(!std::is_pointer_v<index_type> && !std::is_array_v<index_type>);
+
+  using parent_type = Impl::BaseReducer<LastLocScalar<index_type>, Space>;
 
  public:
-  // Required
   using reducer    = LastLoc<Index, Space>;
-  using value_type = LastLocScalar<index_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = ::Kokkos::View<value_type, Space>;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
-
- public:
-  KOKKOS_INLINE_FUNCTION
-  LastLoc(value_type& value_) : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  LastLoc(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     dest.max_loc_true = (src.max_loc_true > dest.max_loc_true)
@@ -1202,15 +934,6 @@ struct LastLoc {
   void init(value_type& val) const {
     val.max_loc_true = ::Kokkos::reduction_identity<index_type>::max();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Index, typename... Properties>
@@ -1227,32 +950,22 @@ struct StdIsPartScalar {
 // StdIsPartitioned
 //
 template <class Index, class Space>
-struct StdIsPartitioned {
+struct StdIsPartitioned
+    : Impl::BaseReducer<StdIsPartScalar<std::remove_cv_t<Index>>, Space> {
  private:
   using index_type = std::remove_cv_t<Index>;
   static_assert(std::is_integral_v<index_type>);
+  static_assert(!std::is_pointer_v<index_type> && !std::is_array_v<index_type>);
+
+  using parent_type = Impl::BaseReducer<StdIsPartScalar<index_type>, Space>;
 
  public:
-  // Required
   using reducer    = StdIsPartitioned<Index, Space>;
-  using value_type = StdIsPartScalar<index_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = ::Kokkos::View<value_type, Space>;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
-
- public:
-  KOKKOS_INLINE_FUNCTION
-  StdIsPartitioned(value_type& value_)
-      : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  StdIsPartitioned(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     dest.max_loc_true = (dest.max_loc_true < src.max_loc_true)
@@ -1269,15 +982,6 @@ struct StdIsPartitioned {
     val.max_loc_true  = ::Kokkos::reduction_identity<index_type>::max();
     val.min_loc_false = ::Kokkos::reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Index, typename... Properties>
@@ -1295,32 +999,22 @@ struct StdPartPointScalar {
 // StdPartitionPoint
 //
 template <class Index, class Space>
-struct StdPartitionPoint {
+struct StdPartitionPoint
+    : Impl::BaseReducer<StdPartPointScalar<std::remove_cv_t<Index>>, Space> {
  private:
   using index_type = std::remove_cv_t<Index>;
   static_assert(std::is_integral_v<index_type>);
+  static_assert(!std::is_pointer_v<index_type> && !std::is_array_v<index_type>);
+
+  using parent_type = Impl::BaseReducer<StdPartPointScalar<index_type>, Space>;
 
  public:
-  // Required
   using reducer    = StdPartitionPoint<Index, Space>;
-  using value_type = StdPartPointScalar<index_type>;
+  using value_type = typename parent_type::value_type;
 
-  using result_view_type = ::Kokkos::View<value_type, Space>;
+  // Inherit constructors
+  using parent_type::parent_type;
 
- private:
-  result_view_type value;
-  bool references_scalar_v;
-
- public:
-  KOKKOS_INLINE_FUNCTION
-  StdPartitionPoint(value_type& value_)
-      : value(&value_), references_scalar_v(true) {}
-
-  KOKKOS_INLINE_FUNCTION
-  StdPartitionPoint(const result_view_type& value_)
-      : value(value_), references_scalar_v(false) {}
-
-  // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
     dest.min_loc_false = (dest.min_loc_false < src.min_loc_false)
@@ -1332,15 +1026,6 @@ struct StdPartitionPoint {
   void init(value_type& val) const {
     val.min_loc_false = ::Kokkos::reduction_identity<index_type>::min();
   }
-
-  KOKKOS_INLINE_FUNCTION
-  value_type& reference() const { return *value.data(); }
-
-  KOKKOS_INLINE_FUNCTION
-  result_view_type view() const { return value; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool references_scalar() const { return references_scalar_v; }
 };
 
 template <typename Index, typename... Properties>
@@ -1348,8 +1033,8 @@ KOKKOS_DEDUCTION_GUIDE StdPartitionPoint(
     View<StdPartPointScalar<Index>, Properties...> const&)
     -> StdPartitionPoint<Index, typename View<StdPartPointScalar<Index>,
                                               Properties...>::memory_space>;
-
 }  // namespace Kokkos
+
 namespace Kokkos {
 namespace Impl {
 
