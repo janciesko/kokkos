@@ -464,7 +464,14 @@ KOKKOS_INLINE_FUNCTION void device_check_all_math_ops(
     device_check_math_op_all_loaders<Abi>(erf_op(), n, first_args);
     device_check_math_op_all_loaders<Abi>(erfc_op(), n, first_args);
     device_check_math_op_all_loaders<Abi>(tgamma_op(), n, first_args);
+#if (HIP_VERSION_MAJOR == 6) && (HIP_VERSION_MINOR == 4)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpass-failed"
+#endif
     device_check_math_op_all_loaders<Abi>(lgamma_op(), n, first_args);
+#if (HIP_VERSION_MAJOR == 6) && (HIP_VERSION_MINOR == 4)
+#pragma clang diagnostic pop
+#endif
 
     device_check_math_op_all_loaders<Abi>(pow_op(), n, first_args, second_args);
     device_check_math_op_all_loaders<Abi>(hypot_op(), n, first_args,
