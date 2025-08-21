@@ -1590,6 +1590,23 @@ TEST(TEST_CATEGORY, mathematical_functions_ieee_remainder_function) {
 // TODO: TestFpClassify, see https://github.com/kokkos/kokkos/issues/6279
 
 #ifndef KOKKOS_MATHEMATICAL_FUNCTIONS_SKIP_2
+
+// Known to fail with
+// * CUDA 12.4 and GCC 13.2
+// * CUDA 12.8 and GCC 13.3
+#if defined(KOKKOS_COMPILER_NVCC) && \
+    (defined(KOKKOS_COMPILER_GNU) && \
+     (KOKKOS_COMPILER_GNU >= 1300 && KOKKOS_COMPILER_GNU < 1400))
+#define KOKKOS_TEST_WORKAROUND_DEPRECATED_STD_ITERATOR_WARNINGS_PUSH() \
+  KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+
+#define KOKKOS_TEST_WORKAROUND_DEPRECATED_STD_ITERATOR_WARNINGS_POP() \
+  KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#else
+#define KOKKOS_TEST_WORKAROUND_DEPRECATED_STD_ITERATOR_WARNINGS_PUSH()
+#define KOKKOS_TEST_WORKAROUND_DEPRECATED_STD_ITERATOR_WARNINGS_POP()
+#endif
+
 template <class Space>
 struct TestIsFinite {
   TestIsFinite() { run(); }
@@ -1649,9 +1666,11 @@ struct TestIsFinite {
       Kokkos::printf("failed isfinite(floating_point) special values\n");
     }
 
+    KOKKOS_TEST_WORKAROUND_DEPRECATED_STD_ITERATOR_WARNINGS_PUSH()
     static_assert(std::is_same_v<decltype(isfinite(1)), bool>);
     static_assert(std::is_same_v<decltype(isfinite(2.f)), bool>);
     static_assert(std::is_same_v<decltype(isfinite(3.)), bool>);
+    KOKKOS_TEST_WORKAROUND_DEPRECATED_STD_ITERATOR_WARNINGS_POP()
 #ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
     static_assert(std::is_same_v<decltype(isfinite(4.l)), bool>);
 #endif
@@ -1723,9 +1742,11 @@ struct TestIsInf {
       Kokkos::printf("failed isinf(floating_point) special values\n");
     }
 
+    KOKKOS_TEST_WORKAROUND_DEPRECATED_STD_ITERATOR_WARNINGS_PUSH()
     static_assert(std::is_same_v<decltype(isinf(1)), bool>);
     static_assert(std::is_same_v<decltype(isinf(2.f)), bool>);
     static_assert(std::is_same_v<decltype(isinf(3.)), bool>);
+    KOKKOS_TEST_WORKAROUND_DEPRECATED_STD_ITERATOR_WARNINGS_POP()
 #ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
     static_assert(std::is_same_v<decltype(isinf(4.l)), bool>);
 #endif
@@ -1797,9 +1818,11 @@ struct TestIsNaN {
       Kokkos::printf("failed isnan(floating_point) special values\n");
     }
 
+    KOKKOS_TEST_WORKAROUND_DEPRECATED_STD_ITERATOR_WARNINGS_PUSH()
     static_assert(std::is_same_v<decltype(isnan(1)), bool>);
     static_assert(std::is_same_v<decltype(isnan(2.f)), bool>);
     static_assert(std::is_same_v<decltype(isnan(3.)), bool>);
+    KOKKOS_TEST_WORKAROUND_DEPRECATED_STD_ITERATOR_WARNINGS_POP()
 #ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
     static_assert(std::is_same_v<decltype(isnan(4.l)), bool>);
 #endif
