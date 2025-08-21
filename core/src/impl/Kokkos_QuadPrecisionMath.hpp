@@ -35,13 +35,9 @@
 namespace Kokkos {
 template <>
 struct reduction_identity<__float128> {
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static __float128 sum() {
-    return static_cast<__float128>(0.0);
-  }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static __float128 prod() {
-    return static_cast<__float128>(1.0);
-  }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static __float128 max() {
+  KOKKOS_FUNCTION constexpr static __float128 sum() noexcept { return 0; }
+  KOKKOS_FUNCTION constexpr static __float128 prod() noexcept { return 1; }
+  KOKKOS_FUNCTION constexpr static __float128 max() noexcept {
     using namespace Kokkos::Experimental;
 #if __FINITE_MATH_ONLY__
     return finite_min_v<__float128>;
@@ -49,7 +45,7 @@ struct reduction_identity<__float128> {
     return -infinity_v<__float128>;
 #endif
   }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static __float128 min() {
+  KOKKOS_FUNCTION constexpr static __float128 min() noexcept {
     using namespace Kokkos::Experimental;
 #if __FINITE_MATH_ONLY__
     return finite_max_v<__float128>;
