@@ -1609,15 +1609,7 @@ struct TestComplexBesselH1Function {
 #else
     using Property = Kokkos::Experimental::WorkItemProperty::None_t;
 #endif
-
-#if (HIP_VERSION_MAJOR == 6) && (HIP_VERSION_MINOR == 4)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpass-failed"
-#endif
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, Property>(0, N), *this);
-#if (HIP_VERSION_MAJOR == 6) && (HIP_VERSION_MINOR == 4)
-#pragma clang diagnostic pop
-#endif
     Kokkos::fence();
 
     Kokkos::deep_copy(h_ch10, d_ch10);
@@ -1809,14 +1801,7 @@ struct TestComplexBesselH2Function {
     Kokkos::deep_copy(d_z, h_z);
 
     // Call Hankel functions
-#if (HIP_VERSION_MAJOR == 6) && (HIP_VERSION_MINOR == 4)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wpass-failed"
-#endif
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace>(0, N), *this);
-#if (HIP_VERSION_MAJOR == 6) && (HIP_VERSION_MINOR == 4)
-#pragma clang diagnostic pop
-#endif
     Kokkos::fence();
 
     Kokkos::deep_copy(h_ch20, d_ch20);
