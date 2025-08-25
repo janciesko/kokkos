@@ -74,5 +74,25 @@ TEST(TEST_CATEGORY, view_static_tests) {
   TestViewSubview::TestExtentsStaticTests<TEST_EXECSPACE>();
 }
 
+TEST(TEST_CATEGORY_DEATH, view_subview_wrong_extents) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
+#ifndef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
+  GTEST_SKIP() << "only enforced when debug bound checks is enabled";
+#ifdef KOKKOS_COMPILER_NVHPC
+  __builtin_unreachable();
+#endif
+#endif
+
+  TestViewSubview::test_subview_extents<1, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<2, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<3, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<4, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<5, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<6, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<7, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<8, TEST_EXECSPACE>();
+}
+
 }  // namespace Test
 #endif

@@ -2320,6 +2320,56 @@ struct TestExtentsStaticTests {
       typename Kokkos::Impl::ParseViewExtents<double>::type>::type;
 };
 
+template <class ExecutionSpace, class RankType, std::size_t... Is>
+void test_subview_extents_helper_index(std::index_sequence<Is...>) {
+  using view_type =
+      Kokkos::View<RankType, typename ExecutionSpace::memory_space>;
+  view_type v("v", ((Is * 0) + 1)...);
+
+  auto sv = Kokkos::subview(v, (Is * 0)...);
+  ASSERT_DEATH({ auto sv_fail = Kokkos::subview(v, ((Is * 0) + 1)...); },
+               "Kokkos::subview bounds error");
+}
+
+template <class ExecutionSpace, class RankType, std::size_t... Is>
+void test_subview_extents_helper_range(std::index_sequence<Is...>) {
+  using view_type =
+      Kokkos::View<RankType, typename ExecutionSpace::memory_space>;
+  view_type v("v", 1, ((Is * 0) + 1)...);
+
+  auto sv = Kokkos::subview(v, std::pair{0, 1}, (Is * 0)...);
+  ASSERT_DEATH(
+      {
+        auto sv_fail = Kokkos::subview(v, std::pair{0, 2}, (Is * 0)...);
+      },
+      "Kokkos::subview bounds error");
+  ASSERT_DEATH(
+      {
+        auto sv_fail = Kokkos::subview(v, Kokkos::pair{0, 2}, (Is * 0)...);
+      },
+      "Kokkos::subview bounds error");
+}
+
+template <int rank>
+struct DynamicRank {
+  using type = typename DynamicRank<rank - 1>::type*;
+};
+
+template <>
+struct DynamicRank<0> {
+  using type = int;
+};
+
+template <int rank, class ExecutionSpace>
+void test_subview_extents() {
+  test_subview_extents_helper_index<ExecutionSpace,
+                                    typename DynamicRank<rank>::type>(
+      std::make_index_sequence<rank>());
+  test_subview_extents_helper_range<ExecutionSpace,
+                                    typename DynamicRank<rank>::type>(
+      std::make_index_sequence<rank - 1>());
+}
+
 }  // namespace TestViewSubview
 
 #endif
