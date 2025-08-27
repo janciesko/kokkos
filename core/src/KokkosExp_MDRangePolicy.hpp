@@ -30,6 +30,7 @@ static_assert(false,
 #include <impl/KokkosExp_Host_IterateTile.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 #include <type_traits>
+#include <array>
 #include <cmath>
 
 namespace Kokkos {
@@ -135,10 +136,12 @@ constexpr NVCC_WONT_LET_ME_CALL_YOU_Array to_array_potentially_narrowing(
 }
 
 struct TileSizeProperties {
-  int max_threads;
+  int max_threads;  // (per SM, CU)
   int default_largest_tile_size;
   int default_tile_size;
   int max_total_tile_size;
+  // For GPU backends: hardware limits for block dimensions
+  std::array<int, 3> max_threads_dimensions;
 };
 
 template <typename ExecutionSpace>
@@ -149,6 +152,9 @@ TileSizeProperties get_tile_size_properties(const ExecutionSpace&) {
   properties.default_largest_tile_size = 0;
   properties.default_tile_size         = 2;
   properties.max_total_tile_size       = std::numeric_limits<int>::max();
+  for (int i = 0; i < 3; ++i) {
+    properties.max_threads_dimensions[i] = std::numeric_limits<int>::max();
+  }
   return properties;
 }
 
