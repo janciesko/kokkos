@@ -175,6 +175,9 @@ template <template <class> class UnaryPred, class... Ts>
 struct type_list_any<UnaryPred, type_list<Ts...>>
     : std::bool_constant<(UnaryPred<Ts>::value || ...)> {};
 
+template <template <class> class UnaryPred, class... Ts>
+constexpr bool type_list_any_v = type_list_any<UnaryPred, Ts...>::value;
+
 // </editor-fold> end type_list_any }}}2
 //------------------------------------------------------------------------------
 
@@ -224,6 +227,36 @@ using filter_type_list_t =
     typename filter_type_list<PredicateT, T, ValueT>::type;
 
 // </editor-fold> end filter_type_list }}}2
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="type_list_contains"> {{{2
+//  type_list_contains checks if a type is contained in the list.
+template <typename, typename...>
+struct type_list_contains;
+
+template <typename U, typename... Ts>
+struct type_list_contains<U, type_list<Ts...>>
+    : std::disjunction<std::is_same<U, Ts>...> {};
+
+template <typename U, typename... Ts>
+constexpr bool type_list_contains_v = type_list_contains<U, Ts...>::value;
+// </editor-fold> end type_list_contains }}}2
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="type_list_size"> {{{2
+//  type_list_size returns the size of a type list.
+template <typename>
+struct type_list_size;
+
+template <typename... Ts>
+struct type_list_size<type_list<Ts...>>
+    : std::integral_constant<std::size_t, sizeof...(Ts)> {};
+
+template <typename T>
+constexpr std::size_t type_list_size_v = type_list_size<T>::value;
+// </editor-fold> end type_list_size }}}2
 //------------------------------------------------------------------------------
 
 // </editor-fold> end type_list }}}1
