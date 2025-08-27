@@ -21,7 +21,7 @@ jobs:
         cmake_build_type: ['Release', 'Debug']
         backend: ['OPENMP']
         cmake_extra_opts: ['-DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"']
-        stdcxx: [17]
+        stdcxx: [20]
         include:
           - arch: 'x64'
             distro: 'ubuntu:intel'
@@ -30,7 +30,7 @@ jobs:
             extra_linker_flags: '-fsanitize=address,undefined -fno-sanitize=function -fno-sanitize=vptr -fno-sanitize-recover=all'
             cmake_build_type: 'Release'
             backend: 'OPENMP'
-            stdcxx: '17'
+            stdcxx: '20'
           - arch: 'x64'
             distro: 'ubuntu:intel'
             cxx: 'icpx'
@@ -53,7 +53,7 @@ jobs:
             extra_linker_flags: '-fsanitize=address,undefined -fno-sanitize=function -fno-sanitize=vptr -fno-sanitize-recover=all'
             cmake_build_type: 'RelWithDebInfo'
             backend: 'SERIAL'
-            stdcxx: '20'
+            stdcxx: '23'
           - arch: 'x64'
             distro: 'ubuntu:latest'
             cxx: 'g++'
@@ -65,28 +65,28 @@ jobs:
             cxx: 'g++'
             cmake_build_type: 'RelWithDebInfo'
             backend: 'OPENMP'
-            stdcxx: '17'
+            stdcxx: '23'
             cmake_extra_opts: '-DKokkos_ARCH_NATIVE=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"'
           - arch: 'arm64'
             distro: 'ubuntu:latest'
             cxx: 'g++'
             cmake_build_type: 'RelWithDebInfo'
             backend: 'THREADS'
-            stdcxx: '17'
+            stdcxx: '20'
             cmake_extra_opts: '-DKokkos_ARCH_NATIVE=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"'
           - arch: 'arm64'
             distro: 'ubuntu:latest'
             cxx: 'g++'
             cmake_build_type: 'Release'
             backend: 'SERIAL'
-            stdcxx: '17'
+            stdcxx: '20'
             cmake_extra_opts: '-DKokkos_ARCH_NATIVE=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"'
           - arch: 'x86'
             distro: 'ubuntu:latest'
             cxx: 'g++'
             cmake_build_type: 'RelWithDebInfo'
             backend: 'OPENMP'
-            stdcxx: '17'
+            stdcxx: '20'
             cxx_extra_flags: '-m32'
             cmake_extra_opts: '-DKokkos_ENABLE_HWLOC=OFF'
           - arch: 'x64'
@@ -94,14 +94,14 @@ jobs:
             cxx: 'g++'
             cmake_build_type: 'RelWithDebInfo'
             backend: 'HPX'
-            stdcxx: '17'
+            stdcxx: '20'
             cmake_extra_opts: '-DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"'
           - arch: 'x64'
             distro: 'ubuntu:latest'
             cxx: 'g++-12'
             cmake_build_type: 'RelWithDebInfo'
             backend: 'OPENMP'
-            stdcxx: '17'
+            stdcxx: '20'
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     container:
       image: ghcr.io/kokkos/ci-containers/${{ matrix.distro }}
@@ -160,7 +160,7 @@ jobs:
             -DKokkos_ENABLE_DEPRECATED_CODE_4=ON \
             -DKokkos_ENABLE_COMPILER_WARNINGS=ON \
             -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_extra_flags }}" \
-            -DCMAKE_CXX_STANDARD="${{ matrix.stdcxx }}" \
+            -DCMAKE_CXX_STANDARD=${{ matrix.stdcxx }} \
             -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.extra_linker_flags }}" \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
@@ -178,7 +178,7 @@ jobs:
         if: ${{ !contains(matrix.cxx_extra_flags, '-fsanitize=address') && matrix.arch != 'x86' }}
         working-directory: example/build_cmake_installed
         run: |
-          cmake -B builddir_buildtree -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DKokkos_ROOT=../../builddir
+          cmake -B builddir_buildtree -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_CXX_STANDARD=${{ matrix.stdcxx }} -DKokkos_ROOT=../../builddir
           cmake --build builddir_buildtree
           cmake --build builddir_buildtree --target test
       - name: Test DESTDIR Install
@@ -189,6 +189,6 @@ jobs:
         if: ${{ !contains(matrix.cxx_extra_flags, '-fsanitize=address') && matrix.arch != 'x86' }}
         working-directory: example/build_cmake_installed
         run: |
-          cmake -B builddir -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          cmake -B builddir -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_CXX_STANDARD=${{ matrix.stdcxx }}
           cmake --build builddir
           cmake --build builddir --target test
