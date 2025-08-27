@@ -35,8 +35,7 @@ namespace Impl {
 template <class ExecutionSpace>
 struct GraphNodeBackendSpecificDetails {
  private:
-  using execution_space_instance_storage_t =
-      ExecutionSpaceInstanceStorage<ExecutionSpace>;
+  using execution_space_instance_storage_t = InstanceStorage<ExecutionSpace>;
   using default_kernel_impl_t = GraphNodeKernelDefaultImpl<ExecutionSpace>;
   using default_aggregate_impl_t =
       GraphNodeAggregateDefaultImpl<ExecutionSpace>;

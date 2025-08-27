@@ -41,7 +41,7 @@ template <class ExecutionSpace>
 struct GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
                      Kokkos::Experimental::TypeErasedTag>
     : GraphNodeBackendSpecificDetails<ExecutionSpace>,
-      ExecutionSpaceInstanceStorage<ExecutionSpace> {
+      InstanceStorage<ExecutionSpace> {
  public:
   using node_ref_t =
       Kokkos::Experimental::GraphNodeRef<ExecutionSpace,
@@ -50,8 +50,7 @@ struct GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
 
  protected:
   using implementation_base_t = GraphNodeBackendSpecificDetails<ExecutionSpace>;
-  using execution_space_storage_base_t =
-      ExecutionSpaceInstanceStorage<ExecutionSpace>;
+  using execution_space_storage_base_t = InstanceStorage<ExecutionSpace>;
 
  public:
   virtual ~GraphNodeImpl() = default;
@@ -92,7 +91,7 @@ struct GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
   //----------------------------------------------------------------------------
 
   ExecutionSpace const& execution_space_instance() const {
-    return this->execution_space_storage_base_t::execution_space_instance();
+    return this->execution_space_storage_base_t::instance();
   }
 };
 

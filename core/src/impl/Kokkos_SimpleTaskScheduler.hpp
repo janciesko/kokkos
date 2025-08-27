@@ -66,9 +66,8 @@ template <class ExecSpace, class QueueType>
 // requires ExecutionSpace<ExecSpace> && TaskQueue<QueueType>
 class SimpleTaskScheduler
     : public Impl::TaskSchedulerBase,
-      private Impl::ExecutionSpaceInstanceStorage<ExecSpace>,
-      private Impl::MemorySpaceInstanceStorage<
-          typename QueueType::memory_space>,
+      private Impl::InstanceStorage<ExecSpace>,
+      private Impl::InstanceStorage<typename QueueType::memory_space>,
       private Impl::NoUniqueAddressMemberEmulation<
           typename QueueType::team_scheduler_info_type> {
  public:
@@ -108,10 +107,9 @@ class SimpleTaskScheduler
   template <typename, typename>
   friend class BasicFuture;
 
-  using track_type = Kokkos::Impl::SharedAllocationTracker;
-  using execution_space_storage =
-      Impl::ExecutionSpaceInstanceStorage<execution_space>;
-  using memory_space_storage = Impl::MemorySpaceInstanceStorage<memory_space>;
+  using track_type              = Kokkos::Impl::SharedAllocationTracker;
+  using execution_space_storage = Impl::InstanceStorage<execution_space>;
+  using memory_space_storage    = Impl::InstanceStorage<memory_space>;
   using team_scheduler_info_storage =
       Impl::NoUniqueAddressMemberEmulation<team_scheduler_info_type>;
 
@@ -254,7 +252,7 @@ class SimpleTaskScheduler
 
   KOKKOS_INLINE_FUNCTION
   execution_space const& get_execution_space() const {
-    return this->execution_space_instance();
+    return this->execution_space_storage::instance();
   }
 
   KOKKOS_INLINE_FUNCTION
