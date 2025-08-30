@@ -56,34 +56,6 @@ struct always_false : std::false_type {};
 
 //==============================================================================
 
-#if defined(__cpp_lib_type_identity)
-// since C++20
-using std::type_identity;
-using std::type_identity_t;
-#else
-template <typename T>
-struct type_identity {
-  using type = T;
-};
-
-template <typename T>
-using type_identity_t = typename type_identity<T>::type;
-#endif
-
-#if defined(__cpp_lib_remove_cvref)
-// since C++20
-using std::remove_cvref;
-using std::remove_cvref_t;
-#else
-template <class T>
-struct remove_cvref {
-  using type = std::remove_cv_t<std::remove_reference_t<T>>;
-};
-
-template <class T>
-using remove_cvref_t = typename remove_cvref<T>::type;
-#endif
-
 // same as C++23 std::to_underlying but with __host__ __device__ annotations
 template <typename E>
 KOKKOS_FUNCTION constexpr std::underlying_type_t<E> to_underlying(
