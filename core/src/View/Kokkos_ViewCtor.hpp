@@ -499,7 +499,7 @@ inline constexpr Kokkos::Impl::AllowPadding_t AllowPadding{};
 template <class... Args>
 auto view_alloc(Args &&...args) {
   using return_type = Impl::ViewCtorProp<
-      typename Impl::ViewCtorProp<void, std:: ::remove_cvref_t<Args>>::type...>;
+      typename Impl::ViewCtorProp<void, std::remove_cvref_t<Args>>::type...>;
 
   static_assert(!return_type::has_pointer,
                 "Cannot give pointer-to-memory for view allocation");
