@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <typeinfo>
 #include <cmath>
+#include <iostream>
 #include <Kokkos_Timer.hpp>
 
 struct FillDevice {
