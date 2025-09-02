@@ -2098,9 +2098,5 @@ KOKKOS_INLINE_FUNCTION void single(
 
 }  // namespace Kokkos
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-#include <HPX/Kokkos_HPX_Task.hpp>
-#endif
-
 #endif /* #if defined( KOKKOS_ENABLE_HPX ) */
 #endif /* #ifndef KOKKOS_HPX_HPP */

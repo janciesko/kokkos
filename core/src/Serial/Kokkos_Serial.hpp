@@ -288,9 +288,6 @@ std::vector<Serial> impl_partition_space(const Serial&,
 #include <Serial/Kokkos_Serial_Parallel_Range.hpp>
 #include <Serial/Kokkos_Serial_Parallel_MDRange.hpp>
 #include <Serial/Kokkos_Serial_Parallel_Team.hpp>
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-#include <Serial/Kokkos_Serial_Task.hpp>
-#endif
 #include <Serial/Kokkos_Serial_UniqueToken.hpp>
 
 #endif  // defined( KOKKOS_ENABLE_SERIAL )

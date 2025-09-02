@@ -30,7 +30,7 @@
 namespace Kokkos {
 namespace Impl {
 
-/**\brief  Team member_type passed to TeamPolicy or TeamTask closures.
+/**\brief  Team member_type passed to the TeamPolicy closure.
  */
 class SYCLTeamMember {
  public:

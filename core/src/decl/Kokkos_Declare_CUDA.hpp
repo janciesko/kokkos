@@ -29,9 +29,6 @@
 #include <Cuda/Kokkos_Cuda_Instance.hpp>
 #include <Cuda/Kokkos_Cuda_View.hpp>
 #include <Cuda/Kokkos_Cuda_Team.hpp>
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-#include <Cuda/Kokkos_Cuda_Task.hpp>
-#endif
 #include <Cuda/Kokkos_Cuda_MDRangePolicy.hpp>
 #include <Cuda/Kokkos_Cuda_UniqueToken.hpp>
 #include <Cuda/Kokkos_Cuda_ZeroMemset.hpp>

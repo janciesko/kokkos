@@ -15,8 +15,6 @@ if(KOKKOS_ENABLE_TESTS)
   endif()
 
   kokkos_include_directories(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
-
-  kokkos_add_executable_and_test(PerformanceTest_TaskDag SOURCES test_taskdag.cpp CATEGORIES PERFORMANCE)
 endif()
 
 if(NOT Kokkos_ENABLE_BENCHMARKS)

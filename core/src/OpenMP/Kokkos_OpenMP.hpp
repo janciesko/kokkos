@@ -202,9 +202,6 @@ struct MemorySpaceAccess<Kokkos::OpenMP::memory_space,
 
 #include <OpenMP/Kokkos_OpenMP_Instance.hpp>
 #include <OpenMP/Kokkos_OpenMP_Team.hpp>
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-#include <OpenMP/Kokkos_OpenMP_Task.hpp>
-#endif
 
 #include <KokkosExp_MDRangePolicy.hpp>
 /*--------------------------------------------------------------------------*/

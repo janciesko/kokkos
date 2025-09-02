@@ -46,7 +46,7 @@ struct HIPJoinFunctor {
   }
 };
 
-/**\brief  Team member_type passed to TeamPolicy or TeamTask closures.
+/**\brief  Team member_type passed to the TeamPolicy closure.
  *
  *  HIP thread blocks for team closures are dimensioned as:
  *    blockDim.x == number of "vector lanes" per "thread"

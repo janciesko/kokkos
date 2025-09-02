@@ -63,9 +63,6 @@
 #include <Kokkos_hwloc.hpp>
 #include <Kokkos_Timer.hpp>
 #include <Kokkos_Tuners.hpp>
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-#include <Kokkos_TaskScheduler.hpp>
-#endif
 #include <Kokkos_Complex.hpp>
 #include <Kokkos_CopyViews.hpp>
 #include <impl/Kokkos_TeamMDPolicy.hpp>
