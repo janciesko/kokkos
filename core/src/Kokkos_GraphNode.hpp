@@ -270,13 +270,12 @@ class GraphNodeRef {
   }
 
   // Overload for a label and a policy.
-  template <
-      typename Label, typename Policy, typename Functor,
-      std::enable_if_t<Kokkos::Impl::is_specialization_of_v<
-                           Kokkos::Impl::remove_cvref_t<Policy>, ThenPolicy> &&
-                           Kokkos::Impl::is_view_label_v<
-                               Kokkos::Impl::remove_cvref_t<Label>>,
-                       int> = 0>
+  template <typename Label, typename Policy, typename Functor,
+            std::enable_if_t<
+                Kokkos::Impl::is_specialization_of_v<
+                    std::remove_cvref_t<Policy>, ThenPolicy> &&
+                    Kokkos::Impl::is_view_label_v<std::remove_cvref_t<Label>>,
+                int> = 0>
   auto then(Label&& label, Policy&& policy, Functor&& functor) const {
     return this->then(std::forward<Label>(label), ExecutionSpace{},
                       std::forward<Policy>(policy),
