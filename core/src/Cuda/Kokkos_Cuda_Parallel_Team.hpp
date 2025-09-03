@@ -225,7 +225,7 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
   const typename traits::execution_space& space() const { return m_space; }
 
   TeamPolicyInternal()
-      : m_space(typename traits::execution_space()),
+      : m_space(),
         m_league_size(0),
         m_team_size(-1),
         m_vector_length(0),
@@ -236,9 +236,9 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
         m_tune_vector(false) {}
 
   /** \brief  Specify league size, specify team size, specify vector length */
-  TeamPolicyInternal(const execution_space space_, int league_size_,
+  TeamPolicyInternal(execution_space space, int league_size_,
                      int team_size_request, int vector_length_request = 1)
-      : m_space(space_),
+      : m_space(std::move(space)),
         m_league_size(league_size_),
         m_team_size(team_size_request),
         m_vector_length(impl_determine_vector_length(vector_length_request)),
@@ -264,23 +264,25 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
   }
 
   /** \brief  Specify league size, request team size, specify vector length */
-  TeamPolicyInternal(const execution_space space_, int league_size_,
+  TeamPolicyInternal(execution_space space, int league_size_,
                      const Kokkos::AUTO_t& /* team_size_request */
                      ,
                      int vector_length_request = 1)
-      : TeamPolicyInternal(space_, league_size_, -1, vector_length_request) {}
+      : TeamPolicyInternal(std::move(space), league_size_, -1,
+                           vector_length_request) {}
 
   /** \brief  Specify league size, request team size and vector length */
-  TeamPolicyInternal(const execution_space space_, int league_size_,
+  TeamPolicyInternal(execution_space space, int league_size_,
                      const Kokkos::AUTO_t& /* team_size_request */,
                      const Kokkos::AUTO_t& /* vector_length_request */
                      )
-      : TeamPolicyInternal(space_, league_size_, -1, -1) {}
+      : TeamPolicyInternal(std::move(space), league_size_, -1, -1) {}
 
   /** \brief  Specify league size, specify team size, request vector length */
-  TeamPolicyInternal(const execution_space space_, int league_size_,
+  TeamPolicyInternal(execution_space space, int league_size_,
                      int team_size_request, const Kokkos::AUTO_t&)
-      : TeamPolicyInternal(space_, league_size_, team_size_request, -1) {}
+      : TeamPolicyInternal(std::move(space), league_size_, team_size_request,
+                           -1) {}
 
   TeamPolicyInternal(int league_size_, int team_size_request,
                      int vector_length_request = 1)
