@@ -131,11 +131,11 @@ class GraphNodeKernelImpl<Kokkos::SYCL, PolicyType, Functor, PatternTag,
   }
 
  private:
-  Kokkos::ObservingRawPtr<sycl::ext::oneapi::experimental::command_graph<
-      sycl::ext::oneapi::experimental::graph_state::modifiable>>
-      m_graph_ptr = nullptr;
-  Kokkos::ObservingRawPtr<std::optional<sycl::ext::oneapi::experimental::node>>
-      m_graph_node_ptr = nullptr;
+  sycl::ext::oneapi::experimental::command_graph<
+      sycl::ext::oneapi::experimental::graph_state::modifiable>* m_graph_ptr =
+      nullptr;
+  std::optional<sycl::ext::oneapi::experimental::node>* m_graph_node_ptr =
+      nullptr;
 };
 
 struct SYCLGraphNodeAggregate {};

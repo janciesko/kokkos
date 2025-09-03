@@ -98,8 +98,8 @@ class GraphNodeKernelImpl<Kokkos::Cuda, PolicyType, Functor, PatternTag,
   // These are really functioning as optional references, though I'm not sure
   // that the cudaGraph_t one needs to be since it's a pointer under the
   // covers and we're not modifying it
-  Kokkos::ObservingRawPtr<const cudaGraph_t> m_graph_ptr    = nullptr;
-  Kokkos::ObservingRawPtr<cudaGraphNode_t> m_graph_node_ptr = nullptr;
+  cudaGraph_t const* m_graph_ptr    = nullptr;
+  cudaGraphNode_t* m_graph_node_ptr = nullptr;
   // Basically, we have to make this mutable for the same reasons that the
   // global kernel buffers in the Cuda instance are mutable...
   mutable std::shared_ptr<base_t> m_driver_storage = nullptr;
@@ -137,8 +137,7 @@ class GraphNodeKernelImpl<Kokkos::Cuda, PolicyType, Functor, PatternTag,
   cudaGraphNode_t* get_cuda_graph_node_ptr() const { return m_graph_node_ptr; }
   cudaGraph_t const* get_cuda_graph_ptr() const { return m_graph_ptr; }
 
-  Kokkos::ObservingRawPtr<base_t> allocate_driver_memory_buffer(
-      const CudaSpace& mem) const {
+  base_t* allocate_driver_memory_buffer(const CudaSpace& mem) const {
     KOKKOS_EXPECTS(m_driver_storage == nullptr)
     std::string alloc_label =
         label + " - GraphNodeKernel global memory functor storage";

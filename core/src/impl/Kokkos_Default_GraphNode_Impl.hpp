@@ -43,7 +43,7 @@ struct GraphNodeBackendSpecificDetails {
   std::vector<std::shared_ptr<GraphNodeBackendSpecificDetails<ExecutionSpace>>>
       m_predecessors = {};
 
-  Kokkos::ObservingRawPtr<default_kernel_impl_t> m_kernel_ptr = nullptr;
+  default_kernel_impl_t* m_kernel_ptr = nullptr;
 
   bool m_has_executed = false;
   bool m_is_aggregate = false;
