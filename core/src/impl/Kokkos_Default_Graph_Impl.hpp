@@ -27,7 +27,6 @@
 #include <OpenMP/Kokkos_OpenMP.hpp>
 // FIXME @graph other backends?
 
-#include <impl/Kokkos_OptionalRef.hpp>
 #include <impl/Kokkos_EBO.hpp>
 
 #include <set>
