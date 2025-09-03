@@ -31,17 +31,19 @@ static_assert(false,
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 namespace Kokkos {
 
 /// Trivial wrapper for raw pointers that express ownership.
 template <class T>
-using OwningRawPtr = T*;
+using OwningRawPtr KOKKOS_DEPRECATED = T*;
 
 /// Trivial wrapper for raw pointers that do not express ownership.
 template <class T>
-using ObservingRawPtr = T*;
+using ObservingRawPtr KOKKOS_DEPRECATED = T*;
 
 }  // end namespace Kokkos
+#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
