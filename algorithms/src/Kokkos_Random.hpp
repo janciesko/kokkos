@@ -77,13 +77,24 @@ namespace Kokkos {
       //Default constructor: does not initialize a pool
       Pool();
 
-      //Initializing constructor: calls init(seed,Device_Specific_Number);
-      Pool(unsigned int seed);
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed
+      Pool(uint64_t seed);
 
-      //Initialize Pool with seed as a starting seed with a pool_size of num_states
-      //The Random_XorShift64 generator is used in serial to initialize all states,
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed and a pool_size of num_states
+      //Note: The generator is used in serial to initialize all states,
       //thus the initialization process is platform independent and deterministic.
-      void init(unsigned int seed, int num_states);
+      Pool(uint64_t seed, uint64_t num_states);
+
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed using the specified execution space instance
+      Pool(const execution_space& exec, uint64_t seed);
+
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed with a pool_size of num_states using the 
+      //specified execution space instance
+      Pool(const execution_space& exec, uint64_t seed, uint64_t num_states);
 
       //Get a generator. This will lock one of the states, guaranteeing that each thread
       //will have its private generator. Note: on Cuda getting a state involves atomics,
@@ -941,31 +952,34 @@ class Random_XorShift64_Pool {
 #endif
 
   Random_XorShift64_Pool(uint64_t seed) {
-    init(execution_space(), seed, execution_space().concurrency());
+    init_impl(execution_space(), seed, execution_space().concurrency());
     execution_space().fence("Random_XorShift64_Pool: Constructor");
   }
 
   Random_XorShift64_Pool(uint64_t seed, uint64_t num_states) {
-    init(execution_space(), seed, num_states);
+    init_impl(execution_space(), seed, num_states);
     execution_space().fence("Random_XorShift64_Pool: Constructor");
   }
 
   Random_XorShift64_Pool(const execution_space& exec, uint64_t seed) {
-    init(exec, seed, exec.concurrency());
+    init_impl(exec, seed, exec.concurrency());
   }
 
   Random_XorShift64_Pool(const execution_space& exec, uint64_t seed,
                          uint64_t num_states) {
-    init(exec, seed, num_states);
+    init_impl(exec, seed, num_states);
   }
 
-  void init(uint64_t seed, uint64_t num_states) {
-    init(execution_space(), seed, num_states);
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  KOKKOS_DEPRECATED void init(uint64_t seed, uint64_t num_states) {
+    init_impl(execution_space(), seed, num_states);
     execution_space().fence("Random_XorShift64_Pool::init");
   }
+#endif
 
  private:
-  void init(execution_space const& exec, uint64_t seed, uint64_t num_states) {
+  void init_impl(execution_space const& exec, uint64_t seed,
+                 uint64_t num_states) {
     num_states_ = num_states;
 
     if (seed == 0) seed = uint64_t(1318319);
@@ -1218,31 +1232,34 @@ class Random_XorShift1024_Pool {
 #endif
 
   Random_XorShift1024_Pool(uint64_t seed) {
-    init(execution_space(), seed, execution_space().concurrency());
+    init_impl(execution_space(), seed, execution_space().concurrency());
     execution_space().fence("Random_XorShift1024_Pool: Constructor");
   }
 
   Random_XorShift1024_Pool(uint64_t seed, uint64_t num_states) {
-    init(execution_space(), seed, num_states);
+    init_impl(execution_space(), seed, num_states);
     execution_space().fence("Random_XorShift1024_Pool: Constructor");
   }
 
   Random_XorShift1024_Pool(const execution_space& exec, uint64_t seed) {
-    init(exec, seed, exec.concurrency());
+    init_impl(exec, seed, exec.concurrency());
   }
 
   Random_XorShift1024_Pool(const execution_space& exec, uint64_t seed,
                            uint64_t num_states) {
-    init(exec, seed, num_states);
+    init_impl(exec, seed, num_states);
   }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   void init(uint64_t seed, uint64_t num_states) {
-    init(execution_space(), seed, num_states);
+    init_impl(execution_space(), seed, num_states);
     execution_space().fence("Random_XorShift1024_Pool::init");
   }
+#endif
 
  private:
-  void init(execution_space const& exec, uint64_t seed, uint64_t num_states) {
+  void init_impl(execution_space const& exec, uint64_t seed,
+                 uint64_t num_states) {
     num_states_ = num_states;
 
     if (seed == 0) seed = uint64_t(1318319);
