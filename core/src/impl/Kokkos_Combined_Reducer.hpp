@@ -363,6 +363,7 @@ struct CombinedReductionFunctorWrapperImpl<
   // TODO: forward final() function to user functor hook, or just ignore it?
 
  private:
+  // NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved)
   // variadic forwarding for MDRangePolicy
   // see comment above for why this has to be so gross
   // recursive case
@@ -384,6 +385,7 @@ struct CombinedReductionFunctorWrapperImpl<
     m_functor((IdxOrMemberTypes&&)idxs...,
               out.template get<Idxs, typename Reducers::value_type>()...);
   }
+  // NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved)
 };
 
 template <class Functor, class Space, class... Reducers>

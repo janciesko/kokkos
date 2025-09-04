@@ -148,7 +148,7 @@ KOKKOS_INLINE_FUNCTION void nested_loop(
                     TeamMDRangeParVector::NotParVector> const,
     TeamMDRangeNestingTracker<Rank, ParThreadNestLevel, ParVectorNestLevel,
                               CurrentNestLevel>,
-    Policy const&, Lambda const& lambda, Impl::NoReductionTag&&, Args... args) {
+    Policy const&, Lambda const& lambda, Impl::NoReductionTag, Args... args) {
   lambda(args...);
 }
 

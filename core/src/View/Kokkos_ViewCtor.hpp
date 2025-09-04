@@ -95,7 +95,7 @@ struct ViewCtorProp<void, CommonViewAllocProp<Specialize, T>> {
   KOKKOS_FUNCTION
   ViewCtorProp(const type &arg) : value(arg) {}
   KOKKOS_FUNCTION
-  ViewCtorProp(type &&arg) : value(arg) {}
+  ViewCtorProp(type &&arg) : value(std::move(arg)) {}
 
   type value;
 };
