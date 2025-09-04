@@ -86,6 +86,12 @@ kokkos_enable_option(COMPILER_WARNINGS OFF "Whether to print all compiler warnin
 kokkos_enable_option(TUNING OFF "Whether to create bindings for tuning tools")
 kokkos_enable_option(AGGRESSIVE_VECTORIZATION OFF "Whether to aggressively vectorize loops")
 kokkos_enable_option(COMPILE_AS_CMAKE_LANGUAGE OFF "Whether to use native cmake language support")
+if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE AND Kokkos_ENABLE_CUDA)
+  if(CMAKE_VERSION VERSION_LESS "3.25.2")
+    message(FATAL_ERROR "Building Kokkos with CUDA as language and c++20 requires CMake version 3.25.2 or higher.")
+  endif()
+endif()
+
 kokkos_enable_option(
   HIP_MULTIPLE_KERNEL_INSTANTIATIONS OFF
   "Whether multiple kernels are instantiated at compile time - improve performance but increase compile time"
