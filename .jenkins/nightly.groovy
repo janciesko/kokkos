@@ -46,7 +46,7 @@ pipeline {
                 stage('spack-cuda') {
                     agent {
                         docker {
-                          image 'nvidia/cuda:12.1.0-devel-ubuntu22.04'
+                          image 'nvidia/cuda:12.9.0-devel-ubuntu24.04'
                           label 'nvidia-docker && ampere'
                         }
                     }
@@ -67,8 +67,8 @@ pipeline {
                           rm -rf spack && \
                           git clone https://github.com/spack/spack.git && \
                           . ./spack/share/spack/setup-env.sh && \
-                          spack install --only=dependencies kokkos@develop+cuda+wrapper+tests cuda_arch=80 ^cuda@12.1.0 && \
-                          spack install --only=package ${CDASH_ARGS} kokkos@develop+cuda+wrapper+tests cuda_arch=80 ^cuda@12.1.0 && \
+                          spack install --only=dependencies kokkos@develop+cuda+wrapper+tests cuda_arch=80 ^cuda@12.9.0 && \
+                          spack install --only=package ${CDASH_ARGS} kokkos@develop+cuda+wrapper+tests cuda_arch=80 ^cuda@12.9.0 && \
                           spack load cmake  && \
                           spack load kokkos-nvcc-wrapper && \
                           spack load cuda && \
