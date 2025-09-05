@@ -60,7 +60,9 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
           chunk_values,
       Kokkos::View<int64_t, Kokkos::Experimental::OpenMPTargetSpace> count)
       const {
-    const idx_type N          = m_policy.end() - m_policy.begin();
+    const idx_type begin      = m_policy.begin();
+    const idx_type end        = m_policy.end();
+    const idx_type N          = end - begin;
     const idx_type chunk_size = 128;
     const idx_type n_chunks   = (N + chunk_size - 1) / chunk_size;
     idx_type nteams           = n_chunks > 512 ? 512 : n_chunks;
@@ -76,14 +78,14 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
           a_functor_reducer.get_reducer();
 #pragma omp parallel num_threads(team_size)
       {
-        const idx_type local_offset = team_id * chunk_size;
+        const idx_type local_offset = team_id * chunk_size + begin;
 
 #pragma omp for
         for (idx_type i = 0; i < chunk_size; ++i) {
           const idx_type idx = local_offset + i;
           value_type val;
           reducer.init(&val);
-          if (idx < N) a_functor(idx, val, false);
+          if ((idx >= begin) && (idx < end)) a_functor(idx, val, false);
 
           element_values(team_id, i) = val;
         }
@@ -118,7 +120,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
           a_functor_reducer.get_reducer();
 #pragma omp parallel num_threads(team_size)
       {
-        const idx_type local_offset = team_id * chunk_size;
+        const idx_type local_offset = team_id * chunk_size + begin;
         value_type offset_value;
         if (team_id > 0)
           offset_value = chunk_values(team_id - 1);
@@ -143,9 +145,9 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
 #endif
           } else
             local_offset_value = offset_value;
-          if (idx < N) a_functor(idx, local_offset_value, true);
+          if (idx < end) a_functor(idx, local_offset_value, true);
 
-          if (idx == N - 1 && m_result_ptr_device_accessible)
+          if (idx == end - 1 && m_result_ptr_device_accessible)
             *m_result_ptr = local_offset_value;
         }
       }
