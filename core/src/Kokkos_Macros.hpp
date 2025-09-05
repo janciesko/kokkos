@@ -667,13 +667,6 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #define KOKKOS_IMPL_ENABLE_CXXABI
 #endif
 
-// WORKAROUND for AMD aomp which apparently defines CUDA_ARCH when building for
-// AMD GPUs with OpenMP Target ???
-#if defined(__CUDA_ARCH__) && !defined(__CUDACC__) && \
-    !defined(KOKKOS_ENABLE_HIP) && !defined(KOKKOS_ENABLE_CUDA)
-#undef __CUDA_ARCH__
-#endif
-
 #if (defined(KOKKOS_IMPL_WINDOWS_CUDA) || defined(KOKKOS_COMPILER_MSVC)) && \
     !defined(KOKKOS_COMPILER_CLANG)
 // MSVC (as of 16.5.5 at least) does not do empty base class optimization by
