@@ -142,9 +142,6 @@ jobs:
       - name: maybe_set_hpx_vars
         if: ${{ matrix.backend == 'HPX' }}
         run: echo "HPX_HANDLE_FAILED_NEW=0" >> $GITHUB_ENV
-      - name: maybe_install_gcc_12
-        if: ${{ matrix.cxx == 'g++-12' }}
-        run: sudo apt-get install -y g++-12
       - name: Configure Kokkos
         run: |
           cmake -B builddir \
