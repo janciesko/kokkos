@@ -99,32 +99,18 @@ if(Kokkos_ENABLE_HIP)
 endif()
 
 if(KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
-  # The Cray compiler reports as Clang to most versions of CMake
-  execute_process(
-    COMMAND ${CMAKE_CXX_COMPILER} --version
-    COMMAND grep -c Cray
-    OUTPUT_VARIABLE INTERNAL_HAVE_CRAY_COMPILER
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  if(INTERNAL_HAVE_CRAY_COMPILER) #not actually Clang
-    set(KOKKOS_CLANG_IS_CRAY TRUE)
-    set(KOKKOS_CXX_COMPILER_ID CrayClang)
-  endif()
-  # The clang based Intel compiler reports as Clang to most versions of CMake
-  execute_process(
-    COMMAND ${CMAKE_CXX_COMPILER} --version
-    COMMAND grep -c "DPC++\\|icpx"
-    OUTPUT_VARIABLE INTERNAL_HAVE_INTEL_COMPILER
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  if(INTERNAL_HAVE_INTEL_COMPILER) #not actually Clang
-    set(KOKKOS_CLANG_IS_INTEL TRUE)
-    set(KOKKOS_CXX_COMPILER_ID IntelLLVM CACHE STRING INTERNAL FORCE)
+  if(CMAKE_VERSION VERSION_LESS "3.28")
+    # The Cray compiler reports as Clang on older versions of CMake
     execute_process(
-      COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE INTERNAL_CXX_COMPILER_VERSION
+      COMMAND ${CMAKE_CXX_COMPILER} --version
+      COMMAND grep -c Cray
+      OUTPUT_VARIABLE INTERNAL_HAVE_CRAY_COMPILER
       OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-    string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" KOKKOS_CXX_COMPILER_VERSION ${INTERNAL_CXX_COMPILER_VERSION})
+    if(INTERNAL_HAVE_CRAY_COMPILER) #not actually Clang
+      set(KOKKOS_CLANG_IS_CRAY TRUE)
+      set(KOKKOS_CXX_COMPILER_ID CrayClang)
+    endif()
   endif()
 endif()
 
