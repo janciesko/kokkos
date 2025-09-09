@@ -5,9 +5,6 @@ if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
   cmake_policy(SET CMP0155 NEW)
 endif()
 
-# Work around MSVC+CUDA issue
-cmake_policy(SET CMP0126 OLD)
-
 # Work around LANGUAGE setting on source files
 cmake_policy(SET CMP0119 OLD)
 
