@@ -13,7 +13,7 @@ static_assert(false,
 #include <type_traits>
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_IMPL_MDSPAN
-#include "View/MDSpan/Kokkos_MDSpan_Header.hpp"
+#include <mdspan/mdspan.hpp>
 #else
 #include <limits>
 #endif
