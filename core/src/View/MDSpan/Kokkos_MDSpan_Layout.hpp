@@ -283,33 +283,40 @@ KOKKOS_INLINE_FUNCTION auto mapping_from_ctor_and_8sizes(
     [[maybe_unused]] const size_t arg_N3, [[maybe_unused]] const size_t arg_N4,
     [[maybe_unused]] const size_t arg_N5, [[maybe_unused]] const size_t arg_N6,
     [[maybe_unused]] const size_t arg_N7) {
+  const size_t N0 = arg_N0 == KOKKOS_IMPL_CTOR_DEFAULT_ARG ? 1 : arg_N0;
+  const size_t N1 = arg_N1 == KOKKOS_IMPL_CTOR_DEFAULT_ARG ? 1 : arg_N1;
+  const size_t N2 = arg_N2 == KOKKOS_IMPL_CTOR_DEFAULT_ARG ? 1 : arg_N2;
+  const size_t N3 = arg_N3 == KOKKOS_IMPL_CTOR_DEFAULT_ARG ? 1 : arg_N3;
+  const size_t N4 = arg_N4 == KOKKOS_IMPL_CTOR_DEFAULT_ARG ? 1 : arg_N4;
+  const size_t N5 = arg_N5 == KOKKOS_IMPL_CTOR_DEFAULT_ARG ? 1 : arg_N5;
+  const size_t N6 = arg_N6 == KOKKOS_IMPL_CTOR_DEFAULT_ARG ? 1 : arg_N6;
+  const size_t N7 = arg_N7 == KOKKOS_IMPL_CTOR_DEFAULT_ARG ? 1 : arg_N7;
+
   if constexpr (MappingType::extents_type::rank() == 0) {
     return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(arg_prop);
   } else if constexpr (MappingType::extents_type::rank() == 1) {
-    return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(arg_prop,
-                                                                arg_N0);
+    return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(arg_prop, N0);
   } else if constexpr (MappingType::extents_type::rank() == 2) {
-    return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(arg_prop,
-                                                                arg_N0, arg_N1);
+    return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(arg_prop, N0,
+                                                                N1);
   } else if constexpr (MappingType::extents_type::rank() == 3) {
-    return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(
-        arg_prop, arg_N0, arg_N1, arg_N2);
+    return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(arg_prop, N0,
+                                                                N1, N2);
   } else if constexpr (MappingType::extents_type::rank() == 4) {
-    return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(
-        arg_prop, arg_N0, arg_N1, arg_N2, arg_N3);
+    return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(arg_prop, N0,
+                                                                N1, N2, N3);
   } else if constexpr (MappingType::extents_type::rank() == 5) {
-    return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(
-        arg_prop, arg_N0, arg_N1, arg_N2, arg_N3, arg_N4);
+    return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(arg_prop, N0,
+                                                                N1, N2, N3, N4);
   } else if constexpr (MappingType::extents_type::rank() == 6) {
     return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(
-        arg_prop, arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5);
+        arg_prop, N0, N1, N2, N3, N4, N5);
   } else if constexpr (MappingType::extents_type::rank() == 7) {
     return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(
-        arg_prop, arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6);
+        arg_prop, N0, N1, N2, N3, N4, N5, N6);
   } else if constexpr (MappingType::extents_type::rank() == 8) {
     return mapping_from_ctor_and_sizes<MappingType, ScalarSize>(
-        arg_prop, arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6,
-        arg_N7);
+        arg_prop, N0, N1, N2, N3, N4, N5, N6, N7);
   }
 }
 }  // namespace Kokkos::Impl
