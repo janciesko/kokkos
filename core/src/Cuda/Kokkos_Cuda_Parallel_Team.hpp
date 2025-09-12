@@ -43,8 +43,6 @@
 
 namespace Kokkos {
 
-extern bool show_warnings() noexcept;
-
 namespace Impl {
 
 template <class... Properties>
