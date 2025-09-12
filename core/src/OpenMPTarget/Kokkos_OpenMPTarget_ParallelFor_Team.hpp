@@ -166,7 +166,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_policy(arg_policy),
         m_shmem_size(m_policy.scratch_size(0) + m_policy.scratch_size(1) +
                      FunctorTeamShmemSize<FunctorType>::value(
-                         m_functor, m_policy.team_size())) {}
+                         arg_functor, m_policy.team_size())) {}
 };
 
 }  // namespace Impl
