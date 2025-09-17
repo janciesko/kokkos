@@ -554,13 +554,15 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
           std::is_constructible_v<
               mdspan_type, typename View<OtherT, OtherArgs...>::mdspan_type>,
           void*> = nullptr)
-      : base_t(static_cast<typename mdspan_type::data_handle_type>(
-                   other.data_handle()),
-               static_cast<typename mdspan_type::mapping_type>(other.mapping()),
-               static_cast<typename mdspan_type::accessor_type>(
-                   other.accessor())) {
-    base_t::check_basic_view_constructibility(other.mapping());
-  }
+      : base_t([&]() {
+          base_t::check_basic_view_constructibility(other.mapping());
+          return base_t(
+              static_cast<typename mdspan_type::data_handle_type>(
+                  other.data_handle()),
+              static_cast<typename mdspan_type::mapping_type>(other.mapping()),
+              static_cast<typename mdspan_type::accessor_type>(
+                  other.accessor()));
+        }()) {}
 
   //----------------------------------------
   // Compatible subview constructor
