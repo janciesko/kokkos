@@ -62,15 +62,6 @@ TEST(TEST_CATEGORY, graph_promises_on_native_objects) {
 
 // Use native HIP graph to generate a DOT representation.
 TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
-#if defined(_GLIBCXX_RELEASE) && _GLIBCXX_RELEASE < 9
-  GTEST_SKIP()
-      << "The GNU C++ Library (libstdc++) versions less than 9.1 "
-         "require linking with `-lstdc++fs` when using std::filesystem";
-#elif defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 110000
-  GTEST_SKIP()
-      << "The LLVM C++ Standard Library (libc++) versions less than "
-         "11 require linking with `-lc++fs` when using std::filesystem";
-#else
   using view_t = Kokkos::View<int, Kokkos::HIP>;
 
   const Kokkos::HIP exec{};
@@ -110,7 +101,6 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
   ASSERT_TRUE(std::regex_search(buffer.str(), std::regex(expected)))
       << "Could not find expected signature regex " << std::quoted(expected)
       << " in " << dot;
-#endif
 }
 
 // Build a Kokkos::Graph from an existing hipGraph_t.
