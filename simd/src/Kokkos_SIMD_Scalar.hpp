@@ -192,13 +192,10 @@ class basic_simd<T, simd_abi::scalar> {
       : m_value(value) {}
   template <class U, std::enable_if_t<std::is_convertible_v<U, value_type>,
                                       bool> = false>
-  KOKKOS_FORCEINLINE_FUNCTION constexpr explicit
-#ifdef KOKKOS_ENABLE_CXX20
-      (Impl::needs_explicit_conversion_v<U, value_type>)
-#endif
-          basic_simd(basic_simd<U, abi_type> const& other) noexcept
-      : m_value(static_cast<U>(other)) {
-  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr explicit(
+      Impl::needs_explicit_conversion_v<U, value_type>)
+      basic_simd(basic_simd<U, abi_type> const& other) noexcept
+      : m_value(static_cast<U>(other)) {}
   template <class G,
             std::enable_if_t<
                 // basically, can you do { value_type r =
