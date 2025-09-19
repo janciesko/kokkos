@@ -555,6 +555,8 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
               mdspan_type, typename View<OtherT, OtherArgs...>::mdspan_type>,
           void*> = nullptr)
       : base_t([&]() {
+          // use an immediately invoked lambda so we can run our own checks with
+          // better error messages before mdspan diagnoses problems
           base_t::check_basic_view_constructibility(other.mapping());
           return base_t(
               static_cast<typename mdspan_type::data_handle_type>(
