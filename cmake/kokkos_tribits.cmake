@@ -109,7 +109,6 @@ function(KOKKOS_ADD_EXECUTABLE_AND_TEST ROOT_NAME)
       OR Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES
       OR Kokkos_ENABLE_SYCL
       OR Kokkos_ENABLE_HPX
-      OR (KOKKOS_CXX_COMPILER_ID STREQUAL "NVIDIA" AND KOKKOS_CXX_COMPILER_VERSION VERSION_LESS 11.3.0)
       OR (KOKKOS_CXX_COMPILER_ID STREQUAL "NVIDIA" AND KOKKOS_CXX_HOST_COMPILER_ID STREQUAL "MSVC"))
   )
     if(MSVC)
@@ -162,7 +161,6 @@ macro(KOKKOS_SETUP_BUILD_ENVIRONMENT)
     include(${KOKKOS_SRC_PATH}/cmake/kokkos_arch.cmake)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${Kokkos_SOURCE_DIR}/cmake/Modules/")
     include(${KOKKOS_SRC_PATH}/cmake/kokkos_tpls.cmake)
-    include(${KOKKOS_SRC_PATH}/cmake/kokkos_corner_cases.cmake)
   endif()
 endmacro()
 
