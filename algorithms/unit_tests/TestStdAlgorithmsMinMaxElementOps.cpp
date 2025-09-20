@@ -436,8 +436,7 @@ TEST_F(std_algorithms_min_max_element_test,
 }
 #endif
 
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_COMPILER_CLANG) && \
-    (KOKKOS_COMPILER_CLANG >= 1300)
+#if defined(KOKKOS_ENABLE_OPENMPTARGET)
 TEST_F(std_algorithms_min_max_element_test, minmax_element_empty_range) {
   test_minmax_element_empty_range(m_static_view);
   test_minmax_element_empty_range(m_dynamic_view);

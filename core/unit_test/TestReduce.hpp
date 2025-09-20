@@ -512,11 +512,7 @@ class TestReduceDynamicView {
 }  // namespace
 
 // FIXME_SYCL
-// FIXME_OPENMPTARGET : The feature works with LLVM/13 on NVIDIA
-// architectures. The jenkins currently tests with LLVM/12.
-#if !defined(KOKKOS_ENABLE_SYCL) &&          \
-    (!defined(KOKKOS_ENABLE_OPENMPTARGET) || \
-     defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300))
+#if !defined(KOKKOS_ENABLE_SYCL)
 TEST(TEST_CATEGORY, int64_t_reduce) {
   TestReduce<int64_t, TEST_EXECSPACE>(0);
   TestReduce<int64_t, TEST_EXECSPACE>(1000000);
@@ -654,10 +650,6 @@ struct FunctorReductionWithLargeIterationCount {
 };
 
 TEST(TEST_CATEGORY, reduction_with_large_iteration_count) {
-  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
-#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
-  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
-#endif
   if constexpr (std::is_same_v<typename TEST_EXECSPACE::memory_space,
                                Kokkos::HostSpace>) {
     GTEST_SKIP() << "Disabling for host backends";
