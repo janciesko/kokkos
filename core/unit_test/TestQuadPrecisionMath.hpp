@@ -97,15 +97,11 @@ constexpr bool test_quad_precision_math_constants() {
   static_assert(Kokkos::numbers::log2e_v <__float128> == M_LOG2Eq);
   static_assert(Kokkos::numbers::log10e_v<__float128> == M_LOG10Eq);
   static_assert(Kokkos::numbers::pi_v    <__float128> == M_PIq);
-#if defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU >= 930)
   static_assert(Kokkos::numbers::inv_pi_v<__float128> == M_1_PIq);
-#endif
   // inv_sqrtpi_v
   static_assert(Kokkos::numbers::ln2_v   <__float128> == M_LN2q);
   static_assert(Kokkos::numbers::ln10_v  <__float128> == M_LN10q);
-#if defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU >= 930)
   static_assert(Kokkos::numbers::sqrt2_v <__float128> == M_SQRT2q);
-#endif
   // sqrt3_v
   // inv_sqrt3_v
   // egamma_v
