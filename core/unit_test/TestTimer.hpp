@@ -42,7 +42,10 @@ TEST(TEST_CATEGORY, timer) {
   std::this_thread::sleep_for(5ms);
   auto elapsed3 = t.seconds();
   EXPECT_GE(elapsed3, .005);
-  EXPECT_LT(elapsed3, elapsed2);
+  // Using the line below turned out to be problematic since there is no
+  // guaranteed upper bound for the time std::this_thread::sleep_for is
+  // blocking for.
+  // EXPECT_LT(elapsed3, elapsed2);
 }
 
 static_assert(!std::is_copy_constructible_v<Kokkos::Timer>);
