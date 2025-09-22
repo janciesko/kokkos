@@ -91,10 +91,9 @@ struct GraphNodeBackendSpecificDetails {
     m_is_aggregate = true;
   }
 
-  // A node is awaitable if it can execute a kernel.
-  // A root node or an aggregate node cannot be waited for, because it does
-  // not launch anything.
-  bool awaitable() const { return (!m_is_root) && (!m_is_aggregate); }
+  // A node is awaitable if it is not a root node.
+  // Note that an aggregate node is a when_all event that may be waited for.
+  bool awaitable() const { return !m_is_root; }
 
   // Retrieve the execution space instance that has been passed to
   // the kernel at construction phase.
