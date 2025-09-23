@@ -99,13 +99,7 @@ KOKKOS_FUNCTION constexpr bool test_array_aggregate_initialization() {
 
 static_assert(test_array_aggregate_initialization());
 
-// A few compilers, such as GCC 8.4, were erroring out when the function below
-// appeared in a constant expression because
-// Kokkos::Array<T, 0, Proxy>::operator[] is non-constexpr.  The issue
-// disappears with GCC 9.1 (https://godbolt.org/z/TG4TEef1b).  As a workaround,
-// the static_assert was dropped and the [[maybe_unused]] is used as an attempt
-// to silent warnings that the function is never used.
-[[maybe_unused]] KOKKOS_FUNCTION void test_array_zero_sized() {
+KOKKOS_FUNCTION constexpr bool test_array_zero_sized() {
   using T = float;
 
   // The code below must compile for zero-sized arrays.
@@ -114,7 +108,11 @@ static_assert(test_array_aggregate_initialization());
   for (int i = 0; i < N; ++i) {
     a[i] = T();
   }
+
+  return true;
 }
+
+static_assert(test_array_zero_sized());
 
 constexpr bool test_array_const_qualified_element_type() {
   Kokkos::Array<int const, 1> a{255};
