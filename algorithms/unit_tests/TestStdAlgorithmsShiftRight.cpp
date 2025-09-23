@@ -73,30 +73,11 @@ void fill_view(ViewType dest_view, const std::string& name) {
   Kokkos::parallel_for("copy", dest_view.extent(0), F1);
 }
 
-template <class ForwardIterator>
-ForwardIterator my_std_shift_right(
-    ForwardIterator first, ForwardIterator last,
-    typename std::iterator_traits<ForwardIterator>::difference_type n) {
-  // copied from
-  // https://github.com/llvm/llvm-project/blob/main/libcxx/include/__algorithm/shift_right.h
-
-  if (n == 0) {
-    return first;
-  }
-
-  decltype(n) d = last - first;
-  if (n >= d) {
-    return last;
-  }
-  ForwardIterator m = first + (d - n);
-  return std::move_backward(first, m, last);
-}
-
 template <class ViewType, class ResultIt, class ViewHostType>
 void verify_data(ResultIt result_it, ViewType view, ViewHostType data_view_host,
                  std::size_t shift_value) {
-  auto std_rit = my_std_shift_right(KE::begin(data_view_host),
-                                    KE::end(data_view_host), shift_value);
+  auto std_rit = std::shift_right(KE::begin(data_view_host),
+                                  KE::end(data_view_host), shift_value);
 
   // make sure results match
   const auto my_diff  = KE::end(view) - result_it;

@@ -28,9 +28,10 @@ import kokkos.std_algorithms;
 #endif
 #include <Kokkos_Core.hpp>
 #include <TestStdAlgorithmsHelperFunctors.hpp>
-#include <utility>
+#include <algorithm>
 #include <numeric>
 #include <random>
+#include <utility>
 
 namespace Test {
 namespace stdalgos {

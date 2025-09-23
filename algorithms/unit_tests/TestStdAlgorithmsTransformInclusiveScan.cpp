@@ -128,34 +128,6 @@ void fill_view(ViewType dest_view, const std::string& name) {
   Kokkos::parallel_for("copy", dest_view.extent(0), F1);
 }
 
-// I had to write my own because std::transform_inclusive_scan is ONLY found
-// with std=c++17
-template <class it1, class it2, class BopType, class UopType>
-void my_host_transform_inclusive_scan(it1 first, it1 last, it2 dest,
-                                      BopType bop, UopType uop) {
-  if (first != last) {
-    auto init = uop(*first);
-    *dest     = init;
-    while (++first < last) {
-      init      = bop(uop(*first), init);
-      *(++dest) = init;
-    }
-  }
-}
-
-template <class it1, class it2, class ValType, class BopType, class UopType>
-void my_host_transform_inclusive_scan(it1 first, it1 last, it2 dest,
-                                      BopType bop, UopType uop, ValType init) {
-  if (first != last) {
-    init  = bop(uop(*first), init);
-    *dest = init;
-    while (++first < last) {
-      init      = bop(uop(*first), init);
-      *(++dest) = init;
-    }
-  }
-}
-
 template <class ViewType1, class ViewType2, class... Args>
 void verify_data(ViewType1 data_view,  // contains data
                  ViewType2 test_view,  // the view to test
@@ -169,9 +141,8 @@ void verify_data(ViewType1 data_view,  // contains data
   using gold_view_value_type = typename ViewType2::value_type;
   Kokkos::View<gold_view_value_type*, Kokkos::HostSpace> gold_h(
       "goldh", data_view.extent(0));
-  my_host_transform_inclusive_scan(KE::cbegin(data_view_h),
-                                   KE::cend(data_view_h), KE::begin(gold_h),
-                                   args...);
+  std::transform_inclusive_scan(KE::cbegin(data_view_h), KE::cend(data_view_h),
+                                KE::begin(gold_h), args...);
 
   auto test_view_dc = create_deep_copyable_compatible_clone(test_view);
   auto test_view_h =

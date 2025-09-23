@@ -23,33 +23,6 @@ namespace UniqueCopy {
 
 namespace KE = Kokkos::Experimental;
 
-// impl is here for std because it is only avail from c++>=17
-template <class InputIterator, class OutputIterator, class BinaryPredicate>
-auto my_unique_copy(InputIterator first, InputIterator last,
-                    OutputIterator result, BinaryPredicate pred) {
-  if (first != last) {
-    typename OutputIterator::value_type t(*first);
-    *result = t;
-    ++result;
-    while (++first != last) {
-      if (!pred(t, *first)) {
-        t       = *first;
-        *result = t;
-        ++result;
-      }
-    }
-  }
-  return result;
-}
-
-template <class InputIterator, class OutputIterator>
-auto my_unique_copy(InputIterator first, InputIterator last,
-                    OutputIterator result) {
-  using value_type = typename OutputIterator::value_type;
-  using func_t     = IsEqualFunctor<value_type>;
-  return my_unique_copy(first, last, result, func_t());
-}
-
 template <class ValueType>
 struct UnifDist;
 
@@ -141,7 +114,7 @@ std::size_t fill_view(ViewType dest_view, const std::string& name) {
     std::fill(tmp.begin(), tmp.end(), static_cast<value_type>(0));
     using func_t = IsEqualFunctor<value_type>;
     auto std_r =
-        my_unique_copy(KE::cbegin(v_h), KE::cend(v_h), tmp.begin(), func_t());
+        std::unique_copy(KE::cbegin(v_h), KE::cend(v_h), tmp.begin(), func_t());
     count = (std::size_t)(std_r - tmp.begin());
   }
 
@@ -225,8 +198,8 @@ void verify_data(const std::string& name, ViewTypeFrom view_from,
     std::vector<value_type> tmp(view_test_h.extent(0));
     std::fill(tmp.begin(), tmp.end(), static_cast<value_type>(0));
 
-    auto std_r = my_unique_copy(KE::cbegin(view_from_h), KE::cend(view_from_h),
-                                tmp.begin(), args...);
+    auto std_r = std::unique_copy(KE::cbegin(view_from_h),
+                                  KE::cend(view_from_h), tmp.begin(), args...);
     (void)std_r;
 
     for (std::size_t i = 0; i < view_from_h.extent(0); ++i) {
