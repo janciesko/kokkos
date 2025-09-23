@@ -34,7 +34,6 @@
 #include <cstdlib>
 #include <stack>
 #include <functional>
-#include <list>
 #include <cerrno>
 #include <random>
 #include <regex>
@@ -51,17 +50,9 @@ bool g_is_initialized      = false;
 bool g_is_finalized        = false;
 bool g_show_warnings       = true;
 bool g_tune_internals      = false;
-// When compiling with clang/LLVM and using the GNU (GCC) C++ Standard Library
-// (any recent version between GCC 7.3 and GCC 9.2), std::deque SEGV's during
-// the unwinding of the atexit(3C) handlers at program termination.  However,
-// this bug is not observable when building with GCC.
-// As an added bonus, std::list<T> provides constant insertion and
-// deletion time complexity, which translates to better run-time performance. As
-// opposed to std::deque<T> which does not provide the same constant time
-// complexity for inserts/removals, since std::deque<T> is implemented as a
-// segmented array.
+
 using hook_function_type = std::function<void()>;
-std::stack<hook_function_type, std::list<hook_function_type>> finalize_hooks;
+std::stack<hook_function_type> finalize_hooks;
 
 /**
  * The category is only used in printing, tools
