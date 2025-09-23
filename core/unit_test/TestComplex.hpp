@@ -412,15 +412,9 @@ TEST(TEST_CATEGORY, complex_special_funtions) {
 
 TEST(TEST_CATEGORY, complex_io) { testComplexIO(); }
 
-TEST(TEST_CATEGORY, complex_trivially_copyable) {
-  // Kokkos::complex<RealType> is trivially copyable when RealType is
-  // trivially copyable
-  using RealType = double;
-  // clang claims compatibility with gcc 4.2.1 but all versions tested know
-  // about std::is_trivially_copyable.
-  ASSERT_TRUE(std::is_trivially_copyable_v<Kokkos::complex<RealType>> ||
-              !std::is_trivially_copyable_v<RealType>);
-}
+static_assert(std::is_trivially_copyable_v<Kokkos::complex<float>>);
+static_assert(std::is_trivially_copyable_v<Kokkos::complex<double>>);
+static_assert(std::is_trivially_copyable_v<Kokkos::complex<long double>>);
 
 template <class ExecSpace>
 struct TestBugPowAndLogComplex {
