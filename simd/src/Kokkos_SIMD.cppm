@@ -75,7 +75,10 @@ export {
   using ::Kokkos::Experimental::simd_flag_aligned;
   using ::Kokkos::Experimental::simd_flag_default;
   using ::Kokkos::Experimental::simd_mask;
-  using ::Kokkos::Experimental::where;
+  using ::Kokkos::Experimental::simd_partial_load;
+  using ::Kokkos::Experimental::simd_partial_store;
+  using ::Kokkos::Experimental::simd_unchecked_load;
+  using ::Kokkos::Experimental::simd_unchecked_store;
 
   using ::Kokkos::Experimental::operator+=;
   using ::Kokkos::Experimental::operator*=;
