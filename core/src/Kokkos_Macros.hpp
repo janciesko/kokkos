@@ -161,8 +161,8 @@
 #define KOKKOS_COMPILER_GNU \
   __GNUC__ * 100 + __GNUC_MINOR__ * 10 + __GNUC_PATCHLEVEL__
 
-#if (820 > KOKKOS_COMPILER_GNU)
-#error "Compiling with GCC version earlier than 8.2.0 is not supported."
+#if (1040 > KOKKOS_COMPILER_GNU)
+#error "Compiling with GCC version earlier than 10.4.0 is not supported."
 #endif
 
 #elif defined(_MSC_VER)
