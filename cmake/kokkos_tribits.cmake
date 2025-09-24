@@ -195,6 +195,9 @@ macro(KOKKOS_CONFIGURE_CORE)
     KokkosCore_Config_HeaderSet.in KokkosCore_Config_DeclareBackend.hpp "KOKKOS_DECLARE" "decl/Kokkos_Declare"
     "${KOKKOS_ENABLED_DEVICES}"
   )
+  if(BUILD_SHARED_LIBS)
+    set(KOKKOS_IMPL_BUILD_SHARED_LIBS ON)
+  endif()
   configure_file(cmake/KokkosCore_config.h.in KokkosCore_config.h @ONLY)
 endmacro()
 
@@ -376,7 +379,9 @@ function(KOKKOS_ADD_LIBRARY LIBRARY_NAME)
   if(PARSE_SHARED OR BUILD_SHARED_LIBS)
     set_target_properties(
       ${LIBRARY_NAME} PROPERTIES VERSION ${Kokkos_VERSION} SOVERSION ${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}
+                                 WINDOWS_EXPORT_ALL_SYMBOLS ON
     )
+    target_compile_definitions(${LIBRARY_NAME} PRIVATE KOKKOS_IMPL_EXPORT_SYMBOLS)
   endif()
 
   kokkos_internal_add_library_install(${LIBRARY_NAME})

@@ -677,4 +677,14 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #define KOKKOS_IMPL_ENFORCE_EMPTY_BASE_OPTIMIZATION
 #endif
 
+#if defined(KOKKOS_IMPL_BUILD_SHARED_LIBS) && defined(_WIN32)
+#ifdef KOKKOS_IMPL_EXPORT_SYMBOLS
+#define KOKKOS_IMPL_EXPORT __declspec(dllexport)
+#else
+#define KOKKOS_IMPL_EXPORT __declspec(dllimport)
+#endif
+#else
+#define KOKKOS_IMPL_EXPORT
+#endif
+
 #endif  // #ifndef KOKKOS_MACROS_HPP
