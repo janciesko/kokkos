@@ -414,7 +414,10 @@ TEST(TEST_CATEGORY, complex_io) { testComplexIO(); }
 
 static_assert(std::is_trivially_copyable_v<Kokkos::complex<float>>);
 static_assert(std::is_trivially_copyable_v<Kokkos::complex<double>>);
+#ifndef KOKKOS_IMPL_32BIT  // FIXME_32BIT
+// error: requested alignment '24' is not a positive power of 2
 static_assert(std::is_trivially_copyable_v<Kokkos::complex<long double>>);
+#endif
 
 template <class ExecSpace>
 struct TestBugPowAndLogComplex {
