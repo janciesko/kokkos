@@ -18,7 +18,13 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.unordered_map;
+#else
 #include <Kokkos_UnorderedMap.hpp>
+#endif
+#include <cstdint>
 
 namespace Kokkos {
 namespace Impl {

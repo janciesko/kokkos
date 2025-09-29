@@ -23,7 +23,6 @@
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_BitManipulation.hpp>
-#include <Kokkos_Functional.hpp>
 
 #include <impl/Kokkos_Bitset_impl.hpp>
 

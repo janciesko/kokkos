@@ -28,10 +28,14 @@
 #endif
 
 #include <Kokkos_Core.hpp>
-#include <Kokkos_Functional.hpp>
-
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.bitset;
+import kokkos.functional;
+#else
 #include <Kokkos_Bitset.hpp>
-
+#include <Kokkos_Functional.hpp>
+#endif
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_UnorderedMap_impl.hpp>
 #include <View/Kokkos_ViewCtor.hpp>

@@ -1,0 +1,38 @@
+//@HEADER
+// ************************************************************************
+//
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
+// the U.S. Government retains certain rights in this software.
+//
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//@HEADER
+
+module;
+
+#include <Kokkos_DynamicView.hpp>
+
+export module kokkos.dynamic_view;
+
+export {
+  namespace Kokkos {
+  namespace Experimental {
+  using ::Kokkos::Experimental::DynamicView;
+  }
+
+  using ::Kokkos::is_dynamic_view;
+  using ::Kokkos::is_dynamic_view_v;
+
+  using ::Kokkos::create_mirror;
+  using ::Kokkos::create_mirror_view;
+  using ::Kokkos::create_mirror_view_and_copy;
+
+  using ::Kokkos::deep_copy;
+  }  // namespace Kokkos
+}
