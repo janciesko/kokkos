@@ -165,16 +165,15 @@ unsigned get_preferred_blocksize_range(HIPInternal const *hip_instance,
                                   LaunchMechanism>::default_launchbounds()) {
     if (requested_parallelism &&
         requested_parallelism < size_t(hip_instance->concurrency())) {
-      const unsigned pes            = hip_internal_multiprocessor_count();
-      const unsigned requestedPerPE = (requested_parallelism + pes - 1) / pes;
+      const unsigned eus            = hip_internal_multiprocessor_count();
+      const unsigned requestedPerEU = (requested_parallelism + eus - 1) / eus;
       // round up to power of 2
-      unsigned threadsPerPE = Kokkos::bit_ceil(requestedPerPE);
-      // make sure it's at least as big as the "conservative" block size
-      threadsPerPE = std::max(threadsPerPE,
-                              unsigned(HIPTraits::ConservativeThreadsPerBlock));
-      threadsPerPE =
-          std::min(threadsPerPE, unsigned(HIPTraits::MaxThreadsPerBlock));
-      return threadsPerPE;
+      unsigned threadsPerEU = Kokkos::bit_ceil(requestedPerEU);
+      threadsPerEU          = std::max(threadsPerEU,
+                                       unsigned(HIPTraits::ConservativeThreadsPerBlock));
+      threadsPerEU =
+          std::min(threadsPerEU, unsigned(HIPTraits::MaxThreadsPerBlock));
+      return threadsPerEU;
     }
   }
   const int hip_device = hip_instance->m_hipDev;
