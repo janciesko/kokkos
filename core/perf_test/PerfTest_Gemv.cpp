@@ -54,44 +54,6 @@ void impl(benchmark::State& state) {
   }
 }
 
-#if defined(KOKKOS_ENABLE_HIP)
-template <class T>
-__global__ void gemv_hip(const T lambda, int M) {
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < M) lambda(i);
-}
-
-template <int BS, typename L>
-void impl_hip(benchmark::State& state) {
-  const size_t M = state.range(0);
-  const size_t N = state.range(1);
-
-  Kokkos::View<int**, L> A("A", M, N);
-  Kokkos::View<int*> y("y", M);
-  Kokkos::View<int*> x("x", N);
-
-  auto lambda = KOKKOS_LAMBDA(const int i) {
-    int sum = 0;
-    for (int j = 0; j < x.extent_int(0); j++) {
-      sum += A(i, j) * x(j);
-    }
-    y(i) = sum;
-  };
-
-  for (auto _ : state) {
-    Kokkos::Timer timer;
-    gemv_hip<<<(y.extent(0) + BS - 1) / BS, BS>>>(lambda, y.extent_int(0));
-    Kokkos::fence();
-    state.SetIterationTime(timer.seconds());
-  }
-}
-
-template <int BS, typename L>
-static void GemvHip(benchmark::State& state) {
-  impl_hip<BS, L>(state);
-}
-#endif  // defined(KOKKOS_ENABLE_HIP)
-
 template <typename L>
 static void GemvDefault(benchmark::State& state) {
   using P = Kokkos::RangePolicy<>;
@@ -121,15 +83,6 @@ BENCHMARK(Gemv<256, Kokkos::LayoutLeft>)->COMMON_ARGS();
 BENCHMARK(Gemv<256, Kokkos::LayoutRight>)->COMMON_ARGS();
 BENCHMARK(Gemv<1024, Kokkos::LayoutLeft>)->COMMON_ARGS();
 BENCHMARK(Gemv<1024, Kokkos::LayoutRight>)->COMMON_ARGS();
-#endif
-
-#if defined(KOKKOS_ENABLE_HIP)
-BENCHMARK(GemvHip<64, Kokkos::LayoutLeft>)->COMMON_ARGS();
-BENCHMARK(GemvHip<64, Kokkos::LayoutRight>)->COMMON_ARGS();
-BENCHMARK(GemvHip<256, Kokkos::LayoutLeft>)->COMMON_ARGS();
-BENCHMARK(GemvHip<256, Kokkos::LayoutRight>)->COMMON_ARGS();
-BENCHMARK(GemvHip<1024, Kokkos::LayoutLeft>)->COMMON_ARGS();
-BENCHMARK(GemvHip<1024, Kokkos::LayoutRight>)->COMMON_ARGS();
 #endif
 
 #undef COMMON_ARGS
