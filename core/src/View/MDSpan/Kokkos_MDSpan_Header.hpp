@@ -42,7 +42,7 @@ struct index_pair_like<Kokkos::pair<IdxT1, IdxT2>, IndexType> {
 }  // namespace detail
 }  // namespace Kokkos
 
-// FIXME_OpenMPTarget: We need to inject our own error handler as the default
+// FIXME_OPENMPTARGET We need to inject our own error handler as the default
 // mdspan one cannot be called from device code
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
 namespace Kokkos::detail {
