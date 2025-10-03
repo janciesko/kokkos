@@ -63,7 +63,8 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::HIP> {
 
     using DriverType = ParallelFor<FunctorType, Policy, Kokkos::HIP>;
     const int block_size =
-        Kokkos::Impl::get_preferred_blocksize_range<DriverType, LaunchBounds>(
+        Kokkos::Impl::get_preferred_blocksize_for_range<DriverType,
+                                                        LaunchBounds>(
             m_policy.space().impl_internal_space_instance(), nwork);
 
     if (block_size == 0) {

@@ -151,8 +151,8 @@ unsigned hip_get_preferred_blocksize(const int hip_device) {
 template <typename DriverType, typename LaunchBounds = Kokkos::LaunchBounds<>,
           HIPLaunchMechanism LaunchMechanism =
               DeduceHIPLaunchMechanism<DriverType>::launch_mechanism>
-unsigned get_preferred_blocksize_range(HIPInternal const *hip_instance,
-                                       size_t requested_parallelism) {
+unsigned get_preferred_blocksize_for_range(HIPInternal const *hip_instance,
+                                           size_t requested_parallelism) {
   /* General approach, if the user did not make a launch bounds request
   - If the requested parallelism is less than the available concurrency, get the
   largest block size that would result in at least 1 block per PE, while also:
