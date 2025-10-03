@@ -17,6 +17,11 @@ static_assert(false,
 
 #include <Kokkos_Pair.hpp>
 
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+#include <cassert>
+#include <iostream>
+#endif
+
 namespace Kokkos {
 namespace detail {
 template <class IdxT1, class IdxT2>
