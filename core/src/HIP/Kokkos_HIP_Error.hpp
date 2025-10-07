@@ -29,9 +29,6 @@ inline void hip_internal_safe_call(hipError_t e, const char* name,
     case hipSuccess: break;
     case hipErrorInvalidValue:
     case hipErrorOutOfMemory:
-#if (HIP_VERSION_MAJOR >= 7)
-    case hipErrorMemoryAllocation:
-#endif
     case hipErrorInitializationError:
     case hipErrorDeinitialized:
     case hipErrorInvalidConfiguration:
