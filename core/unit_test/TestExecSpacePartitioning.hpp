@@ -6,7 +6,16 @@
 #include <iostream>
 #include <thread>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+
+#ifdef KOKKOS_ENABLE_OPENMP
+#include <omp.h>
+#endif
 
 namespace Test {
 namespace {

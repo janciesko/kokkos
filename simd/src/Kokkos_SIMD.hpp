@@ -8,6 +8,8 @@
 #include <Kokkos_SIMD_Scalar.hpp>
 #include <Kokkos_Macros.hpp>
 
+#include <cstdint>
+
 // FIXME_OPENMPTARGET The device pass disables all compiler macros checked
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
 #if defined(KOKKOS_ARCH_AVX2)

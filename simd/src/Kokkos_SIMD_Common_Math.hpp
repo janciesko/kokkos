@@ -4,7 +4,12 @@
 #ifndef KOKKOS_SIMD_COMMON_MATH_HPP
 #define KOKKOS_SIMD_COMMON_MATH_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core; // Kokkos::min, etc.
+#else
 #include <Kokkos_Core.hpp>  // Kokkos::min, etc.
+#endif
 
 namespace Kokkos {
 

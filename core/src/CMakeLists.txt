@@ -127,8 +127,18 @@ else()
   message(STATUS "  " ${desul_DIR})
 endif()
 
+if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
+  set(KOKKOS_CORE_MODULE_FILES Kokkos_Core.cppm Kokkos_Core_Impl.cppm)
+endif()
+
 kokkos_add_library(
-  kokkoscore SOURCES ${KOKKOS_CORE_SRCS} HEADERS ${KOKKOS_CORE_HEADERS}
+  kokkoscore
+  SOURCES
+  ${KOKKOS_CORE_SRCS}
+  MODULE_INTERFACE
+  ${KOKKOS_CORE_MODULE_FILES}
+  HEADERS
+  ${KOKKOS_CORE_HEADERS}
   ADD_BUILD_OPTIONS # core should be given all the necessary compiler/linker flags
 )
 
