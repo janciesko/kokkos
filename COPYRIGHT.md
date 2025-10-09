@@ -23,16 +23,16 @@ Christian Trott; SNL; crtrott@sandia.gov
 Nathan Ellingwood; SNL; ndellin@sandia.gov
 Dong Hun Lee; SNL; donlee@sandia.gov
 Nicolas Morales; SNL; nmmoral@sandia.gov
-Thomas Conrad; SNL; Clevenger tccleve@sandia.gov tccleve@kokkos-dev-2.sandia.gov
+Conrad Clevenger ; SNL; tccleve@sandia.gov
 Carl Pearson; SNL; cwpears@sandia.gov
 Jan Ciesko; SNL; jan.ciesko@gmail.com
 
 ### Oak Ridge National Laboratories (ORNL)
 
-Damien Lebrun-Grandie; ORNL; dalg24@gmail.com dalg24+github@gmail.com
+Damien Lebrun-Grandie; ORNL; dalg24@gmail.com
 Daniel Arndt; ORNL; arndtd@ornl.gov
 Bruno Turcksin; ORNL; bruno.turcksin@gmail.com
-Jakob Bludau; ORNL; bludauj@ornl.gov 104908666+JBludau@users.noreply.github.com
+Jakob Bludau; ORNL; bludauj@ornl.gov
 Seyong Lee; ORNL; lees2@ornl.gov
 
 ### Commissariat à l’Energie Atomique et aux Energies Alternatives (CEA)
@@ -66,20 +66,20 @@ Francesco Rizzi; SNL; fnrizzi@sandia.gov
 Nathan Ellingwood; SNL; ndellin@sandia.gov
 Dong Hun Lee; SNL; donlee@sandia.gov
 Nicolas Morales; SNL; nmmoral@sandia.gov
-Thomas Conrad; SNL; Clevenger tccleve@sandia.gov tccleve@kokkos-dev-2.sandia.gov
+Conrad Clevenger ; SNL; tccleve@sandia.gov
 Carl Pearson; SNL; cwpears@sandia.gov
 Jan Ciesko; SNL; jan.ciesko@gmail.com
 Cezary Skrzyński; SNL; cezary.skrzynski@ng-analytics.com
 Arkadiusz Szczepkowicz; SNL; arek.szczepkowicz@ng-analytics.com
-Dan Ibanez; SNL; ibaned@users.noreply.github.com
-Evan Harvey; SNL; 57234914+e10harvey@users.noreply.github.com
+Dan Ibanez; SNL; daibane@sandia.gov
+Evan Harvey; SNL; eharvey@sandia.gov
 
 ### Oak Ridge National Laboratories (ORNL)
 
-Damien Lebrun-Grandie; ORNL; dalg24@gmail.com dalg24+github@gmail.com
+Damien Lebrun-Grandie; ORNL; dalg24@gmail.com
 Daniel Arndt; ORNL; arndtd@ornl.gov
 Bruno Turcksin; ORNL; bruno.turcksin@gmail.com
-Jakob Bludau; ORNL; bludauj@ornl.gov 104908666+JBludau@users.noreply.github.com
+Jakob Bludau; ORNL; bludauj@ornl.gov
 Seyong Lee; ORNL; lees2@ornl.gov
 Andrey Prokopenko; ORNL; prokopenkoav@ornl.gov
 
@@ -123,7 +123,7 @@ Francesco Rizzi; SNL; fnrizzi@sandia.gov
 Dong Hun Lee; SNL; donlee@sandia.gov
 Evan Harvey; SNL; eharvey@sandia.gov
 Phil Miller; SNL; pbmille@sandia.gov
-Jeff Miles; SNL; jsmiles@sandia.gov jsmiles@kokkos-dev-2.sandia.gov jsmiles@apollo.sandia.gov
+Jeff Miles; SNL; jsmiles@sandia.gov
 Nicolas Morales; SNL; nmmoral@sandia.gov
 Jeremiah Wilke; SNL; jjwilke@sandia.gov
 Jan Ciesko; SNL; jan.ciesko@gmail.com
@@ -139,7 +139,7 @@ Si Hammond; SNL; sdhammo@compton1.(none)
 
 ### Oak Ridge National Laboratories (ORNL)
 
-Damien Lebrun-Grandie; ORNL; dalg24@gmail.com dalg24+github@gmail.com
+Damien Lebrun-Grandie; ORNL; dalg24@gmail.com
 Daniel Arndt; ORNL; arndtd@ornl.gov
 Bruno Turcksin; ORNL; bruno.turcksin@gmail.com
 Seyong Lee; ORNL; lees2@ornl.gov
@@ -148,8 +148,8 @@ Seyong Lee; ORNL; lees2@ornl.gov
 
 Rahul Gayatri; OTHER; rgayatri@lbl.gov rahulgayatri84@gmail.com
 Nick Curtis; OTHER; nicholas.curtis@amd.com nicurtis@amd.com
-Jonathan R. Madsen; OTHER; jonathanrmadsen@gmail.com jrmadsen@users.noreply.github.com
-Christoph Junghans; OTHER; junghans@votca.org junghans@lanl.gov
+Jonathan R. Madsen; OTHER; jonathanrmadsen@gmail.com
+Christoph Junghans; OTHER; junghans@votca.org
 Mikael Simberg; OTHER; simberg@cscs.ch mikael.simberg@iki.fi
 J Todd; OTHER; joeatodd@gmail.com
 Jakob Bludau; OTHER; jakob.bludau@tum.de
@@ -181,7 +181,7 @@ Si Hammond; SNL; sdhammo@sandia.gov
 James David Stevens; SNL; jdsteve@kokkos-dev.sandia.gov
 Mark Hoemmen; SNL; mhoemme@sandia.gov
 Jeremiah Wilke; SNL; jjwilke@sandia.gov
-Jeff Miles; SNL; jsmiles@sandia.gov jsmiles@kokkos-dev-2.sandia.gov jsmiles@apollo.sandia.gov
+Jeff Miles; SNL; jsmiles@sandia.gov
 Stan Moore; SNL; stamoor@sandia.gov
 James Elliott; SNL; jjellio@sandia.gov
 Eric Phipps; SNL; etphipp@sandia.gov
@@ -190,7 +190,7 @@ Steven W. Bova; SNL; swbova@kokkos-dev.sandia.gov
 
 ### Oak Ridge National Laboratories (ORNL)
 
-Damien Lebrun-Grandie; ORNL; qdi@ornl.gov
+Damien Lebrun-Grandie; ORNL; dalg24@gmail.com
 
 ### Commissariat à l’Energie Atomique et aux Energies Alternatives (CEA)
 
@@ -202,5 +202,5 @@ Mikael Simberg; OTHER; simberg@cscs.ch mikael.simberg@iki.fi
 Chip Freitag; OTHER; chip.freitag@amd.com
 Scott Kruger; OTHER; scott.e.kruger@gmail.com
 Christoph Junghans; OTHER; junghans@votca.org
-Daniel Holladay; OTHER; dholladay00@.lanl.gov
+Daniel Holladay; OTHER; dholladay00@lanl.gov
 
