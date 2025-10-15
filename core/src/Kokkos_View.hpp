@@ -998,6 +998,72 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
                      scratch_value_alignment))),
              arg_layout) {}
 
+ private:
+  // Function to support use case of Trilinos Sacado where an extra dimension
+  // is handed in to pass to the accessor (i.e. ensemble dimension)
+  template <size_t... Idx, class... Sizes>
+  KOKKOS_FUNCTION auto construct_scratch_view_from_extra_dim(
+      std::index_sequence<Idx...>,
+      const typename traits::execution_space::scratch_memory_space& arg_space,
+      Sizes... sizes_in) const {
+    size_t sizes[rank() + 1] = {static_cast<size_t>(sizes_in)...};
+    const auto map =
+        Impl::mapping_from_ctor_and_sizes<typename mdspan_type::mapping_type,
+                                          sizeof(value_type)>(
+            Kokkos::view_wrap(static_cast<pointer_type>(nullptr)),
+            sizes[Idx]...);
+
+    size_t extra_dim = sizes[rank()];
+    const auto acc   = accessor_from_mapping_and_accessor_arg(
+        Kokkos::Impl::AccessorTypeTag<typename base_t::accessor_type>(), map,
+        Kokkos::Impl::AccessorArg_t{extra_dim});
+
+    const size_t allocation_size =
+        allocation_size_from_mapping_and_accessor(map, acc) *
+        sizeof(raw_allocation_value_type);
+    return base_t(static_cast<pointer_type>(arg_space.get_shmem_aligned(
+                      allocation_size, scratch_value_alignment)),
+                  std::move(map), std::move(acc));
+  }
+
+ public:
+  // Constructor to support use case of Trilinos Sacado where an extra dimension
+  // is handed in to pass to the accessor (i.e. ensemble dimension)
+  // Only eligible of View customization points exists.
+  template <class... Sizes>
+    requires((sizeof...(Sizes) == rank() + 1) && traits::impl_is_customized)
+  explicit KOKKOS_INLINE_FUNCTION View(
+      const typename traits::execution_space::scratch_memory_space& arg_space,
+      Sizes... sizes)
+      : base_t(construct_scratch_view_from_extra_dim(
+            std::make_index_sequence<rank()>(), arg_space, sizes...)) {}
+
+  // Constructor to support cases where View is customized but no extra argument
+  // is passed in. In this case the accessor is default constructed, but the
+  // customization point for allocation size still needs to be used.
+  template <std::integral... Sizes>
+    requires((sizeof...(Sizes) == rank()) && traits::impl_is_customized)
+  explicit KOKKOS_INLINE_FUNCTION View(
+      const typename traits::execution_space::scratch_memory_space& arg_space,
+      Sizes... sizes)
+      : base_t([&] {
+          const auto map = Impl::mapping_from_ctor_and_sizes<
+              typename mdspan_type::mapping_type, sizeof(value_type)>(
+              Kokkos::view_wrap(static_cast<pointer_type>(nullptr)), sizes...);
+
+          const auto acc = typename base_t::accessor_type();
+
+          const size_t allocation_size =
+              allocation_size_from_mapping_and_accessor(map, acc) *
+              sizeof(raw_allocation_value_type);
+          return base_t(static_cast<pointer_type>(arg_space.get_shmem_aligned(
+                            allocation_size, scratch_value_alignment)),
+                        std::move(map), std::move(acc));
+        }()) {}
+
+  // Constructor supporting scratch view construction without customization.
+  // don't need to use customization point for allocation size, and use
+  // default constructor for accessor.
   explicit KOKKOS_INLINE_FUNCTION View(
       const typename traits::execution_space::scratch_memory_space& arg_space,
       const size_t arg_N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -1008,18 +1074,19 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
       const size_t arg_N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       const size_t arg_N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       const size_t arg_N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : View(Impl::ViewCtorProp<pointer_type>(
-                 static_cast<pointer_type>(arg_space.get_shmem_aligned(
-                     required_allocation_size(typename traits::array_layout(
-                         arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6,
-                         arg_N7)),
-                     scratch_value_alignment))),
-             typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3,
-                                           arg_N4, arg_N5, arg_N6, arg_N7)) {
-    static_assert(traits::array_layout::is_extent_constructible,
-                  "Layout is not constructible from extent arguments. Use "
-                  "overload taking a layout object instead.");
-  }
+    requires(!traits::impl_is_customized)
+      : base_t([&] {
+          const auto map = Impl::mapping_from_ctor_and_8sizes<
+              typename mdspan_type::mapping_type, sizeof(value_type)>(
+              Kokkos::view_wrap(static_cast<pointer_type>(nullptr)), arg_N0,
+              arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7);
+
+          size_t allocation_size =
+              map.required_span_size() * sizeof(value_type);
+          return base_t(static_cast<pointer_type>(arg_space.get_shmem_aligned(
+                            allocation_size, scratch_value_alignment)),
+                        std::move(map), typename base_t::accessor_type());
+        }()) {}
 
  public:
   //----------------------------------------
