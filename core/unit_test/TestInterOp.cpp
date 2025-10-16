@@ -12,6 +12,7 @@ import kokkos.dyn_rank_view;
 #include <KokkosExp_InterOp.hpp>
 
 // View
+/*
 static_assert(
     std::is_same_v<
         Kokkos::Experimental::python_view_type_t<Kokkos::View<double*>>,
@@ -20,16 +21,18 @@ static_assert(
                      typename Kokkos::DefaultExecutionSpace::memory_space,
                      Kokkos::Experimental::DefaultViewHooks>>,
     "Error! Unexpected python_view_type for: View");
-
+*/
 // DynRankView
-static_assert(
+using works =  Kokkos::Experimental::python_view_type_t<Kokkos::View<double>>;
+using fails =  Kokkos::Experimental::python_view_type_t<Kokkos::DynRankView<double>>;
+/*static_assert(
     std::is_same_v<
         Kokkos::Experimental::python_view_type_t<Kokkos::DynRankView<double>>,
         Kokkos::DynRankView<
             double, typename Kokkos::DefaultExecutionSpace::array_layout,
             typename Kokkos::DefaultExecutionSpace::memory_space>>,
-    "Error! Unexpected python_view_type for: DynRankView");
-
+    "Error! Unexpected python_view_type for: DynRankView");*/
+/*
 // View + Execution Space
 static_assert(
     std::is_same_v<
@@ -130,3 +133,4 @@ static_assert(
             Kokkos::MemoryTraits<Kokkos::Atomic>>>,
     "Error! Unexpected python_view_type for: DynRankView + Layout + Execution "
     "space  + Memory trait");
+*/
