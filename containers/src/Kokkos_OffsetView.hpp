@@ -212,7 +212,7 @@ class OffsetView : public View<DataType, Properties...> {
  public:
   //----------------------------------------
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   /** \brief  Compatible view of array of scalar types */
   using array_type KOKKOS_DEPRECATED_WITH_COMMENT("Use type instead.") =
       OffsetView<typename traits::scalar_array_type,

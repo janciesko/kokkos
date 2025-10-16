@@ -374,7 +374,7 @@ struct ViewDataAnalysis {
   using non_const_data_type =
       typename ViewDataType<non_const_value_type, dimension>::type;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   using type KOKKOS_DEPRECATED_WITH_COMMENT("Use data_type instead.") =
       data_type;
   using const_type KOKKOS_DEPRECATED_WITH_COMMENT(
@@ -383,7 +383,7 @@ struct ViewDataAnalysis {
       "Use non_const_data_type instead.") = non_const_data_type;
 #endif
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   // Generate "flattened" multidimensional array specification type.
   using scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
       "Use data_type instead.") = data_type;

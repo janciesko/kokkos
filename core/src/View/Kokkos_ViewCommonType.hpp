@@ -26,7 +26,7 @@ struct CommonViewAllocProp<void, ValueType> {
   using value_type = ValueType;
   using data_type  = ValueType;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   using scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
       "Use data_type instead.") = data_type;
 #endif

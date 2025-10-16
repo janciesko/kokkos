@@ -602,7 +602,7 @@ void test_view_mapping() {
         std::is_same_v<typename a_const_int_r1::const_value_type, const int>);
     static_assert(
         std::is_same_v<typename a_const_int_r1::non_const_value_type, int>);
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
     KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(
         std::is_same_v<typename a_const_int_r1::scalar_array_type, const int*>);
@@ -629,7 +629,7 @@ void test_view_mapping() {
         std::is_same_v<typename a_const_int_r3::const_value_type, const int>);
     static_assert(
         std::is_same_v<typename a_const_int_r3::non_const_value_type, int>);
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
     KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(std::is_same_v<typename a_const_int_r3::scalar_array_type,
                                  const int** [4]>);
@@ -652,7 +652,7 @@ void test_view_mapping() {
     static_assert(std::is_same_v<typename T::const_data_type, const int*>);
     static_assert(std::is_same_v<typename T::non_const_data_type, int*>);
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
     KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(std::is_same_v<typename T::scalar_array_type, int*>);
     static_assert(
@@ -676,7 +676,7 @@ void test_view_mapping() {
     static_assert(std::is_same_v<typename C::const_data_type, const int*>);
     static_assert(std::is_same_v<typename C::non_const_data_type, int*>);
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
     KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(std::is_same_v<typename C::scalar_array_type, const int*>);
     static_assert(
@@ -743,7 +743,7 @@ void test_view_mapping() {
     static_assert(std::is_same_v<typename T::const_data_type, const int*>);
     static_assert(std::is_same_v<typename T::non_const_data_type, int*>);
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
     KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(std::is_same_v<typename T::scalar_array_type, int*>);
     static_assert(

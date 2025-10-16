@@ -459,7 +459,7 @@ class DynRankView : private View<DataType*******, Properties...> {
   using reference_type = typename view_type::reference_type;
   using pointer_type   = typename view_type::pointer_type;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   using scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
       "Use data_type instead.") = data_type;
   using const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
@@ -509,7 +509,7 @@ class DynRankView : private View<DataType*******, Properties...> {
       typename drvtraits::data_type, typename drvtraits::array_layout,
       typename drvtraits::device_type, typename drvtraits::memory_traits>;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   /** \brief  Compatible view of array of scalar types */
   using array_type KOKKOS_DEPRECATED_WITH_COMMENT("Use type instead.") = type;
 #endif

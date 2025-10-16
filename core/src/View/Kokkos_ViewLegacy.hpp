@@ -239,7 +239,7 @@ class View : public ViewTraits<DataType, Properties...> {
                     typename traits::device_type, typename traits::hooks_policy,
                     typename traits::memory_traits>;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   /** \brief  Compatible view of array of data types */
   using array_type KOKKOS_DEPRECATED_WITH_COMMENT("Use type instead.") = type;
 #endif

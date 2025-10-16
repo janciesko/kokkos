@@ -197,7 +197,7 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   using raw_allocation_value_type = std::remove_pointer_t<pointer_type>;
 
  public:
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   using scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
       "Use data_type instead.") = data_type;
   using const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
@@ -217,7 +217,7 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
                     typename traits::device_type, typename traits::hooks_policy,
                     typename traits::memory_traits>;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   //----------------------------------------
   // Compatible view of array of scalar types
   using array_type KOKKOS_DEPRECATED_WITH_COMMENT("Use type instead.") = type;

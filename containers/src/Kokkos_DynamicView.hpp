@@ -266,7 +266,7 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
   using uniform_type =
       DynamicView<typename traits::data_type, typename traits::device_type>;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   /** \brief  Compatible view of array of scalar types */
   using array_type KOKKOS_DEPRECATED_WITH_COMMENT("Use uniform_type instead.") =
       uniform_type;

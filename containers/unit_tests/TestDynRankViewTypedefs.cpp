@@ -55,7 +55,7 @@ constexpr bool test_view_typedefs_impl() {
   static_assert(std::is_same_v<typename ViewType::const_data_type, typename data_analysis<DataType>::const_data_type>);
   static_assert(std::is_same_v<typename ViewType::non_const_data_type, typename data_analysis<DataType>::non_const_data_type>);
   
-  #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   // FIXME: these should be deprecated and for proper testing (I.e. where this is different from data_type)
   // we would need ensemble types which use the hidden View dimension facility of View (i.e. which make
   // "specialize" not void)
@@ -65,7 +65,7 @@ constexpr bool test_view_typedefs_impl() {
   static_assert(std::is_same_v<typename ViewType::non_const_scalar_array_type, typename data_analysis<DataType>::non_const_data_type>);
   KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
   #endif
-  #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   static_assert(std::is_same_v<typename ViewType::specialize, void>);
   #endif
 
@@ -98,7 +98,7 @@ constexpr bool test_view_typedefs_impl() {
 
   // FIXME: in contrast to View, hooks_policy is not propagated
   static_assert(std::is_same_v<typename ViewType::traits, ViewTraitsType>);
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
 KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
   static_assert(std::is_same_v<typename ViewType::array_type,
                                Kokkos::DynRankView<typename ViewType::scalar_array_type, typename ViewType::array_layout,

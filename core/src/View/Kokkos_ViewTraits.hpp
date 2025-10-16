@@ -496,7 +496,7 @@ struct ViewTraits {
   using const_data_type     = typename data_analysis::const_data_type;
   using non_const_data_type = typename data_analysis::non_const_data_type;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   //------------------------------------
   // Compatible array of trivial type traits:
   using scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
