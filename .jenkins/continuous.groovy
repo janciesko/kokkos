@@ -41,7 +41,7 @@ pipeline {
                         dockerfile {
                             filename 'Dockerfile.modules'
                             dir 'scripts/docker'
-                            label 'docker'
+                            label 'nvidia-docker || docker'
                             args '--env NODE_NAME=${env.NODE_NAME} --env STAGE_NAME=${env.STAGE_NAME}'
                         }
                     }
@@ -86,7 +86,7 @@ pipeline {
                          dockerfile {
                              filename 'Dockerfile.gcc'
                              dir 'scripts/docker'
-                             label 'docker'
+                             label 'nvidia-docker || docker'
                              args '--env NODE_NAME=${env.NODE_NAME} --env STAGE_NAME=${env.STAGE_NAME}'
                          }
                      }
