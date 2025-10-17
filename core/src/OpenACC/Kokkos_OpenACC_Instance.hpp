@@ -8,8 +8,11 @@
 
 #include <openacc.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <iosfwd>
+#include <iterator>
+#include <ranges>
 #include <string>
 
 namespace Kokkos::Experimental::Impl {
@@ -44,21 +47,18 @@ class OpenACCInternal {
 };
 
 // For each space in partition, assign a new async ID, ignoring weights
-template <class T>
-std::vector<OpenACC> impl_partition_space(const OpenACC& base_instance,
-                                          const std::vector<T>& weights) {
+template <std::ranges::input_range Weights,
+          std::output_iterator<OpenACC> OutIter>
+void impl_partition_space(const OpenACC& base_instance, const Weights& weights,
+                          OutIter out) {
   constexpr int KOKKOS_IMPL_ACC_ASYNC_RANGE_BEGIN  = 64;
   constexpr int KOKKOS_IMPL_ACC_ASYNC_RANGE_LENGTH = 128;
-  std::vector<OpenACC> instances;
-  auto const n = weights.size();
-  instances.reserve(n);
-  std::generate_n(std::back_inserter(instances), n, [] {
+  std::ranges::generate_n(out, std::ranges::size(weights), [] {
     OpenACCInternal::m_next_async = (OpenACCInternal::m_next_async + 1) %
                                     KOKKOS_IMPL_ACC_ASYNC_RANGE_LENGTH;
     return OpenACC(OpenACCInternal::m_next_async +
                    KOKKOS_IMPL_ACC_ASYNC_RANGE_BEGIN);
   });
-  return instances;
 }
 
 }  // namespace Kokkos::Experimental::Impl
