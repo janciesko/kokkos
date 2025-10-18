@@ -431,6 +431,47 @@ struct TestReducers {
     }
   }
 
+  // Test that reducers return correct results with LaunchBounds value smaller
+  // than 32.
+  template <int N>
+  static void test_launch_bounds() {
+    Kokkos::View<Scalar*> v("", N);
+    Kokkos::deep_copy(v, Scalar(2));
+
+    // Functor
+    auto suml  = KOKKOS_LAMBDA(const int i, Scalar& ret) { ret += v(i); };
+    auto prodl = KOKKOS_LAMBDA(const int i, Scalar& ret) { ret *= v(i); };
+
+    // This first reduction is necessary to ensure we trigger the bug #8443
+    Scalar ret;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy(0, 1), suml,
+                            Kokkos::Sum<Scalar>(ret));
+    EXPECT_EQ(ret, 2) << "N=" << N;
+
+    // Test that LaunchBounds<N> works with Sum
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<Kokkos::LaunchBounds<N>>(0, N),
+                            suml, Kokkos::Sum<Scalar>(ret));
+    EXPECT_EQ(ret, 2 * N) << "N=" << N;
+
+    // This test can't be run on int32 with N>= 31 because of overflow
+    if constexpr (!(std::is_integral_v<Scalar> && sizeof(Scalar) <= 32) ||
+                  N < 31) {
+      // Test that LaunchBounds<N> works with Prod
+      Kokkos::parallel_reduce(
+          Kokkos::RangePolicy<Kokkos::LaunchBounds<N>>(0, N), prodl,
+          Kokkos::Prod<Scalar>(ret));
+
+      Scalar expected = Scalar(1ull << N);
+      EXPECT_EQ(ret, expected) << "N=" << N;
+    }
+  }
+
+  static void test_launch_bounds() {
+    test_launch_bounds<1>();
+    test_launch_bounds<5>();
+    test_launch_bounds<31>();
+  }
+
   static void test_sum(int N) {
     Kokkos::View<Scalar*, ExecSpace> values("Values", N);
     auto h_values        = Kokkos::create_mirror_view(values);
@@ -1548,6 +1589,7 @@ struct TestReducers {
   }
 
   static void execute_float() {
+    test_launch_bounds();
     test_sum(10001);
     test_prod(35);
     test_min(10003);
@@ -1590,6 +1632,7 @@ struct TestReducers {
   // Although unlikely, the test below could still in principle overflow.
   // For reference log(numeric_limits<int>)/log(4) is 15.5
   static void execute_integer() {
+    test_launch_bounds();
     test_sum(10001);
     test_prod(sizeof(Scalar) > 4 ? 35 : 19);  // avoid int overflow (see above)
     test_min(10003);
