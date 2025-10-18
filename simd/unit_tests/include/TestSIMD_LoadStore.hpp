@@ -4,7 +4,13 @@
 #ifndef KOKKOS_TEST_SIMD_LOADSTORE_HPP
 #define KOKKOS_TEST_SIMD_LOADSTORE_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.simd;
+import kokkos.simd_impl;
+#else
 #include <Kokkos_SIMD.hpp>
+#endif
 #include <SIMDTesting_Utilities.hpp>
 
 template <typename SimdType, typename... Args>

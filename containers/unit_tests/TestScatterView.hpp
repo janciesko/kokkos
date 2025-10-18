@@ -8,6 +8,7 @@
 #ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
 import kokkos.core;
 import kokkos.scatter_view;
+import kokkos.scatter_view_impl;
 #else
 #include <Kokkos_Core.hpp>
 #include <Kokkos_ScatterView.hpp>

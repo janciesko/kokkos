@@ -7,6 +7,7 @@
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
 import kokkos.simd;
+import kokkos.simd_impl;
 #else
 #include <Kokkos_SIMD.hpp>
 #endif

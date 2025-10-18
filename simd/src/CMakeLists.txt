@@ -14,7 +14,7 @@ install(
   PATTERN "*.hpp"
 )
 
-set(SIMD_MODULES Kokkos_SIMD.cppm)
+set(SIMD_MODULES Kokkos_SIMD.cppm Kokkos_SIMD_Impl.cppm)
 
 #-----------------------------------------------------------------------------
 
