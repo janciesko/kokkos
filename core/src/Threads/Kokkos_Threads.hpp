@@ -91,8 +91,6 @@ class Threads {
 
   static int impl_is_initialized();
 
-  static Threads& impl_instance(int = 0);
-
   //----------------------------------------
 
   static int impl_thread_pool_size(int depth = 0);
