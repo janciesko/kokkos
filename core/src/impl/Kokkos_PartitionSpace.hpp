@@ -13,8 +13,6 @@
 
 #include <algorithm>
 #include <array>
-#include <iterator>
-#include <ranges>
 #include <type_traits>
 #include <vector>
 
@@ -22,13 +20,15 @@ namespace Kokkos::Experimental::Impl {
 
 // Customization point for backends. Default behavior is to return the passed
 // in instance, ignoring weights
-template <class ExecSpace, std::ranges::input_range Weights,
-          std::output_iterator<ExecSpace> OutIter>
-  requires(is_execution_space_v<ExecSpace>)
-void impl_partition_space(const ExecSpace& base_instance,
-                          const Weights& weights, OutIter out) {
-  std::ranges::generate_n(out, std::ranges::size(weights),
-                          [&base_instance] { return base_instance; });
+template <class ExecSpace, class T>
+std::vector<ExecSpace> impl_partition_space(const ExecSpace& base_instance,
+                                            const std::vector<T>& weights) {
+  std::vector<ExecSpace> instances;
+  instances.reserve(weights.size());
+  std::generate_n(std::back_inserter(instances), weights.size(),
+                  [&base_instance]() { return base_instance; });
+
+  return instances;
 }
 
 }  // namespace Kokkos::Experimental::Impl
@@ -43,28 +43,37 @@ namespace Kokkos::Experimental {
 // Ouput:
 //   - Array (or vector) of execution spaces partitioned based on weights
 template <class ExecSpace, class... Args>
-  requires(is_execution_space_v<ExecSpace> &&
-           (std::is_arithmetic_v<Args> && ...))
 std::array<ExecSpace, sizeof...(Args)> partition_space(
     ExecSpace const& base_instance, Args... args) {
-  using weight_type  = std::common_type_t<Args...>;
-  constexpr size_t N = sizeof...(Args);
+  static_assert(is_execution_space<ExecSpace>::value,
+                "Kokkos Error: partition_space expects an Execution Space as "
+                "first argument");
+  static_assert(
+      (... && std::is_arithmetic_v<Args>),
+      "Kokkos Error: partitioning arguments must be integers or floats");
 
-  std::array<ExecSpace, N> instances;
-  Impl::impl_partition_space(base_instance, std::array<weight_type, N>{args...},
-                             instances.begin());
+  // Get vector of instances from backend specific impl
+  std::vector<std::common_type_t<Args...>> weights = {args...};
+  auto instances_vec = Impl::impl_partition_space(base_instance, weights);
+
+  // Convert to std::array and return
+  std::array<ExecSpace, sizeof...(Args)> instances;
+  std::copy(instances_vec.begin(), instances_vec.end(), instances.begin());
   return instances;
 }
 
 template <class ExecSpace, class T>
-  requires(is_execution_space_v<ExecSpace> && std::is_arithmetic_v<T>)
 std::vector<ExecSpace> partition_space(ExecSpace const& base_instance,
                                        std::vector<T> const& weights) {
-  std::vector<ExecSpace> instances;
-  instances.reserve(weights.size());
-  Impl::impl_partition_space(base_instance, weights,
-                             std::back_inserter(instances));
-  return instances;
+  static_assert(is_execution_space<ExecSpace>::value,
+                "Kokkos Error: partition_space expects an Execution Space as "
+                "first argument");
+  static_assert(
+      std::is_arithmetic_v<T>,
+      "Kokkos Error: partitioning arguments must be integers or floats");
+
+  // Return vector of instances from backend specific impl
+  return Impl::impl_partition_space(base_instance, weights);
 }
 
 }  // namespace Kokkos::Experimental

@@ -22,11 +22,8 @@
 
 #include <omp.h>
 
-#include <algorithm>
-#include <iterator>
 #include <mutex>
 #include <numeric>
-#include <ranges>
 #include <type_traits>
 #include <vector>
 
@@ -138,11 +135,11 @@ inline bool execute_in_serial(OpenMP const& space = OpenMP()) {
 
 namespace Experimental::Impl {
 // Calculate pool sizes for partitioned OpenMP spaces
-template <std::ranges::input_range Weights>
-inline std::vector<int> calculate_omp_pool_sizes(OpenMP const& main_instance,
-                                                 const Weights& weights) {
+template <typename T>
+inline std::vector<int> calculate_omp_pool_sizes(
+    OpenMP const& main_instance, std::vector<T> const& weights) {
   static_assert(
-      std::is_arithmetic_v<typename Weights::value_type>,
+      std::is_arithmetic_v<T>,
       "Kokkos Error: partitioning arguments must be integers or floats");
   if (weights.size() == 0) {
     Kokkos::abort("Kokkos::abort: Partition weights vector is empty.");
@@ -164,10 +161,9 @@ inline std::vector<int> calculate_omp_pool_sizes(OpenMP const& main_instance,
 }
 
 // Create new OpenMP instances with pool sizes relative to input weights
-template <std::ranges::input_range Weights,
-          std::output_iterator<OpenMP> OutIter>
-void impl_partition_space(const OpenMP& base_instance, const Weights& weights,
-                          OutIter out) {
+template <class T>
+std::vector<OpenMP> impl_partition_space(const OpenMP& base_instance,
+                                         const std::vector<T>& weights) {
 #if (!defined(KOKKOS_COMPILER_GNU) || KOKKOS_COMPILER_GNU >= 1110) && \
     _OPENMP >= 201511
   bool has_nested = omp_get_max_active_levels() > 1;
@@ -175,14 +171,18 @@ void impl_partition_space(const OpenMP& base_instance, const Weights& weights,
   bool has_nested = static_cast<bool>(omp_get_nested());
 #endif
   if (!has_nested || omp_get_level() != 0) {
-    std::ranges::generate_n(out, std::ranges::size(weights),
-                            [] { return Kokkos::OpenMP{}; });
+    return std::vector<OpenMP>(weights.size());
   } else {
     const auto pool_sizes =
         Impl::calculate_omp_pool_sizes(base_instance, weights);
 
-    std::ranges::transform(pool_sizes, out,
-                           [](const auto size) { return OpenMP(size); });
+    std::vector<OpenMP> instances;
+    instances.reserve(pool_sizes.size());
+    for (size_t i = 0; i < pool_sizes.size(); ++i) {
+      instances.emplace_back(OpenMP(pool_sizes[i]));
+    }
+
+    return instances;
   }
 }
 }  // namespace Experimental::Impl

@@ -37,14 +37,12 @@ static_assert(false,
 
 #include <Kokkos_UniqueToken.hpp>
 
-#include <algorithm>
 #include <cstddef>
 #include <iosfwd>
-#include <iterator>
 #include <functional>
 #include <memory>
-#include <ranges>
 #include <type_traits>
+#include <vector>
 
 namespace Kokkos {
 namespace Impl {
@@ -447,11 +445,15 @@ class HPX {
 namespace Impl {
 // Create new, independent instance of HPX execution space for each partition,
 // ignoring weights
-template <std::ranges::input_range Weights, class OutIer>
-void impl_partition_space(const HPX &, const Weights &weights,
-                          OutIer instances) {
-  std::ranges::generate_n(instances, std::ranges::size(weights),
-                          [] { return HPX(HPX::instance_mode::independent); });
+template <class T>
+std::vector<HPX> impl_partition_space(const HPX &,
+                                      const std::vector<T> &weights) {
+  std::vector<HPX> instances;
+  instances.reserve(weights.size());
+  std::generate_n(std::back_inserter(instances), weights.size(),
+                  []() { return HPX(HPX::instance_mode::independent); });
+
+  return instances;
 }
 }  // namespace Impl
 
