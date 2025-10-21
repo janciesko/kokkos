@@ -415,10 +415,6 @@ std::map<int, SharedResourceLock> HIPInternal::constantMemReusable = {};
 
 //----------------------------------------------------------------------------
 
-Kokkos::HIP::size_type hip_internal_multiprocessor_count() {
-  return HIPInternal::singleton().m_deviceProp.multiProcessorCount;
-}
-
 Kokkos::HIP::size_type *hip_internal_scratch_space(const HIP &instance,
                                                    const std::size_t size) {
   return instance.impl_internal_space_instance()->scratch_space(size);

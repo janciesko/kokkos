@@ -49,7 +49,9 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>, HIP> {
 
   inline void execute() {
     const int warps_per_block = 4;
-    const dim3 grid(hip_internal_multiprocessor_count(), 1, 1);
+    const int multiProcessorCount =
+        m_policy.space().hip_device_prop().multiProcessorCount;
+    const dim3 grid(multiProcessorCount, 1, 1);
     const dim3 block(1, HIPTraits::WarpSize, warps_per_block);
     const int shared = 0;
 
