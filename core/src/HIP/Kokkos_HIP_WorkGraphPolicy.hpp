@@ -54,7 +54,8 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>, HIP> {
     const int shared = 0;
 
     HIPParallelLaunch<Self>(*this, grid, block, shared,
-                            HIP().impl_internal_space_instance(), false);
+                            m_policy.space().impl_internal_space_instance(),
+                            false);
   }
 
   inline ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)
