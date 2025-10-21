@@ -22,7 +22,7 @@ if(NOT Kokkos_ENABLE_BENCHMARKS)
 endif()
 
 # Find or download google/benchmark library
-find_package(benchmark QUIET 1.5.6)
+find_package(benchmark QUIET 1.8.3)
 if(benchmark_FOUND)
   message(STATUS "Using google benchmark found in ${benchmark_DIR}")
 else()
@@ -34,8 +34,8 @@ else()
   FetchContent_Declare(
     googlebenchmark
     DOWNLOAD_EXTRACT_TIMESTAMP FALSE
-    URL https://github.com/google/benchmark/archive/refs/tags/v1.7.1.tar.gz
-    URL_HASH MD5=0459a6c530df9851bee6504c3e37c2e7
+    URL https://github.com/google/benchmark/archive/refs/tags/v1.8.3.tar.gz
+    URL_HASH MD5=7b93dd03670665684f1b2e9b70ad17fe
   )
   FetchContent_MakeAvailable(googlebenchmark)
   list(POP_BACK CMAKE_MESSAGE_INDENT)
