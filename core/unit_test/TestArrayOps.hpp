@@ -128,6 +128,17 @@ TEST(TEST_CATEGORY, array_zero_data_nullptr) {
   ASSERT_EQ(ce.data(), nullptr);
 }
 
+TEST(TEST_CATEGORY, array_stl_compatibility) {
+  using A = Kokkos::Array<int, 3>;
+  A a{1, 2, 3};
+
+  int sum  = std::reduce(a.begin(), a.end(), int{0}, std::plus<int>{});
+  int csum = std::reduce(a.cbegin(), a.cend(), int{0}, std::plus<int>{});
+  int expected_sum = 1 + 2 + 3;
+  EXPECT_EQ(sum, expected_sum);
+  EXPECT_EQ(csum, expected_sum);
+}
+
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 #ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
 KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
