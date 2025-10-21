@@ -9,6 +9,7 @@ static_assert(false,
 #ifndef KOKKOS_BASIC_VIEW_HPP
 #define KOKKOS_BASIC_VIEW_HPP
 #include <Kokkos_Macros.hpp>
+#include <impl/Kokkos_InitializeFinalize.hpp>
 #include <impl/Kokkos_Utilities.hpp>
 #include <impl/Kokkos_SharedAlloc.hpp>
 #include <View/Kokkos_ViewAlloc.hpp>
@@ -345,6 +346,25 @@ class BasicView {
       const Impl::ViewCtorProp<P...> &arg_prop,
       const typename mdspan_type::mapping_type &arg_mapping,
       const typename mdspan_type::accessor_type &arg_accessor) {
+    if (bool was_finalized = is_finalized();
+        was_finalized || !is_initialized()) {
+      std::stringstream ss;
+      ss << "Kokkos ERROR: View ";
+      constexpr bool has_label = Impl::ViewCtorProp<P...>::has_label;
+      if constexpr (has_label) {
+        auto const &lbl = Impl::get_property<Impl::LabelTag>(arg_prop);
+        ss << "(label=\"" << lbl << "\") ";
+      }
+      ss << "is being constructed ";
+      if (was_finalized) {
+        ss << "after finalize() ";
+      } else {
+        ss << "before initialize() ";
+      }
+      ss << "has been called";
+      auto const err = ss.str();
+      abort(err.c_str());
+    }
     using storage_value_type = typename data_handle_type::value_type;
     constexpr bool has_exec  = Impl::ViewCtorProp<P...>::has_execution_space;
     // Copy the input allocation properties with possibly defaulted properties
@@ -354,15 +374,6 @@ class BasicView {
     auto prop_copy = Impl::with_properties_if_unset(
         prop_copy_tmp, memory_space{}, execution_space{});
     using alloc_prop = decltype(prop_copy);
-
-    if (alloc_prop::initialize &&
-        !alloc_prop::execution_space::impl_is_initialized()) {
-      // If initializing view data then
-      // the execution space must be initialized.
-      Kokkos::abort(
-          "Constructing View and initializing data with uninitialized "
-          "execution space");
-    }
 
     // get allocation size: may be different from
     // arg_mapping.required_span_size()
