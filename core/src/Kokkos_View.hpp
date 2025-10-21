@@ -421,10 +421,13 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   // ROCM: The below code segfaults the compiler with ROCM 6.3 and ROCM 6.2
   // We will simply avoid the performance optimization code path for those.
   // SYCL: The below code segfaults the compiler with Intel OneAPI 2024
+  // Cuda+Clang segfaults for clang-17 andt clang-18
 #if !(defined(HIP_VERSION) && HIP_VERSION_MAJOR == 6 &&                     \
       HIP_VERSION_MINOR <= 3) &&                                            \
     !(defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_COMPILER_INTEL_LLVM) && \
-      KOKKOS_COMPILER_INTEL_LLVM < 20250000)
+      KOKKOS_COMPILER_INTEL_LLVM < 20250000) &&                             \
+    !(defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_CLANG) &&      \
+      KOKKOS_COMPILER_CLANG >= 1700 && KOKKOS_COMPILER_CLANG < 1900)
   // Rank 0
   KOKKOS_FUNCTION constexpr auto compute_offset(std::index_sequence<>) const {
     return 0;
