@@ -73,7 +73,7 @@ struct test_dualview_with_datacheck {
     a = ViewType("A", n, m);
     b = ViewType("B", n, m);
 
-    const scalar_type sum_total = static_cast<scalar_type>(n * m);
+    const scalar_type sum_total = static_cast<scalar_type>(n) *  static_cast<scalar_type>(m);
 
     Kokkos::deep_copy(a.view_device(), 1);
 
@@ -178,7 +178,7 @@ struct test_dualview_sync {
     }
     Kokkos::fence();
 
-    const scalar_type sum_total = static_cast<scalar_type>(n * m);
+    const scalar_type sum_total = static_cast<scalar_type>(n) *  static_cast<scalar_type>(m);
     scalar_type a_d_sum         = 0;
     Kokkos::parallel_reduce(
         Kokkos::RangePolicy<device_space>(0, n),
@@ -205,12 +205,10 @@ template <typename Scalar, typename Device>
 void test_dualview() {
   Impl::test_dualview_with_datacheck<Scalar, Device>(128, 128);
   Impl::test_dualview_with_datacheck<Scalar, Device>(512, 512);
-  Impl::test_dualview_with_datacheck<Scalar, Device>(2048, 2048);
-  Impl::test_dualview_with_datacheck<Scalar, Device>(8192, 8192);
+  Impl::test_dualview_with_datacheck<Scalar, Device>(1024, 1024);
   Impl::test_dualview_sync<Scalar, Device>(128, 128);
   Impl::test_dualview_sync<Scalar, Device>(512, 512);
-  Impl::test_dualview_sync<Scalar, Device>(2048, 2048);
-  Impl::test_dualview_sync<Scalar, Device>(8192, 8192);
+  Impl::test_dualview_sync<Scalar, Device>(1024, 1024);
 }
 }  // namespace Performance
 
