@@ -475,44 +475,6 @@ pipeline {
                         }
                     }
                 }
-                stage('OPENMPTARGET-Clang') {
-                    agent {
-                        dockerfile {
-                            filename 'Dockerfile.openmptarget'
-                            dir 'scripts/docker'
-                            label 'nvidia-docker && volta'
-                            args '-v /tmp/ccache.kokkos:/tmp/ccache --env NVIDIA_VISIBLE_DEVICES=$NVIDIA_VISIBLE_DEVICES --env NODE_NAME=${env.NODE_NAME} --env STAGE_NAME=${env.STAGE_NAME}'
-                        }
-                    }
-                    steps {
-                        sh 'ccache --zero-stats'
-                        sh '''#!/bin/bash
-                              exec > >(awk '{ print "[" ENVIRON["STAGE_NAME"] "]", $0 }') 2>&1 && \
-                              echo "Hostname: ${NODE_NAME}" && \
-                              rm -rf build && mkdir -p build && cd build && \
-                              cmake \
-                                -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-                                -DCMAKE_CXX_COMPILER=clang++ \
-                                -DCMAKE_CXX_FLAGS="-Wno-unknown-cuda-version -Werror -Wno-undefined-internal -Wno-pass-failed" \
-                                -DKokkos_ARCH_NATIVE=ON \
-                                -DKokkos_ENABLE_COMPILER_WARNINGS=ON \
-                                -DKokkos_ENABLE_DEPRECATED_CODE_4=ON \
-                                -DKokkos_ENABLE_TESTS=ON \
-                                -DKokkos_ENABLE_BENCHMARKS=ON \
-                                -DKokkos_ENABLE_TUNING=ON \
-                                -DKokkos_ENABLE_OPENMPTARGET=ON \
-                                -DKokkos_ARCH_VOLTA70=ON \
-                                -DCMAKE_CXX_STANDARD=20 \
-                              .. && \
-                              make -j8 && ctest --no-compress-output -T Test --verbose'''
-                    }
-                    post {
-                        always {
-                            sh 'ccache --show-stats'
-                            xunit([CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)])
-                        }
-                    }
-                }
                 stage('CUDA-11.8-Clang-15') {
                     agent {
                         dockerfile {
