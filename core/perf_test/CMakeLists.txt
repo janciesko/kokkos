@@ -29,6 +29,7 @@ else()
   message(STATUS "No installed google benchmark found, fetching from GitHub")
   include(FetchContent)
   set(BENCHMARK_ENABLE_TESTING OFF)
+  set(BENCHMARK_ENABLE_INSTALL OFF)
 
   list(APPEND CMAKE_MESSAGE_INDENT "[benchmark] ")
   FetchContent_Declare(
