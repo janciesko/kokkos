@@ -100,9 +100,9 @@ struct ViewValueFunctor {
     }
 
 #ifdef KOKKOS_ENABLE_CUDA
-    if (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
-      Kokkos::Impl::cuda_prefetch_pointer(space, ptr, sizeof(ValueType) * n,
-                                          true);
+    if constexpr (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
+      Kokkos::Impl::cuda_prefetch_pointer(space.cuda_stream(), ptr,
+                                          sizeof(ValueType) * n, true);
     }
 #endif
     const Kokkos::Impl::ParallelFor<ViewValueFunctor, PolicyType> closure(
