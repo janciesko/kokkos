@@ -644,9 +644,6 @@ void Cuda::impl_finalize() {
         Kokkos::Impl::CudaInternal::constantMemReusablePerDevice[cuda_device]));
   }
 
-  auto &deep_copy_space = Impl::cuda_get_deep_copy_space(/*initialize*/ false);
-  if (deep_copy_space)
-    deep_copy_space->impl_internal_space_instance()->finalize();
   KOKKOS_IMPL_CUDA_SAFE_CALL(
       cudaStreamDestroy(Impl::cuda_get_deep_copy_stream()));
 
