@@ -604,7 +604,13 @@ void Cuda::impl_finalize() {
   Impl::CudaInternal::default_instance = nullptr;
 }
 
-Cuda::~Cuda() { Impl::check_execution_space_destructor_precondition(name()); }
+// This destructor is never called on device, but we get an NVCC warning
+// in the implicitly defined ~RangePolicy<ExecSpace>(). Mark it as __host__
+// __device__ but only execute internals on host
+KOKKOS_FUNCTION Cuda::~Cuda() {
+  KOKKOS_IF_ON_HOST(
+      (Impl::check_execution_space_destructor_precondition(name());))
+}
 
 Cuda::Cuda()
     : m_space_instance(
