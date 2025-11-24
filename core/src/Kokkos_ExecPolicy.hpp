@@ -339,7 +339,7 @@ class ImplRangePolicy<ExecSpace, Properties...>
    */
   struct WorkRange {
     using work_tag =
-        typename ImplRangePolicy<ExecSpace, Properties...>::work_tag;
+        typename ImplRangePolicy<ExecSpace, Properties...>::traits::work_tag;
     using member_type =
         typename ImplRangePolicy<ExecSpace, Properties...>::member_type;
 
