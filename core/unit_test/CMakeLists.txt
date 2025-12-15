@@ -172,6 +172,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenACC;HIP;SYCL)
         QuadPrecisionMath
         RangePolicy
         RangePolicyConstructors
+        RangePolicyExecutionTypes
         RangePolicyRequire
         ReducerCTADs
         Reducers_a
@@ -181,7 +182,6 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenACC;HIP;SYCL)
         Reducers_e
         Reductions
         Reductions_DeviceView
-        SelfSimilarRangePolicy
         SharedAlloc
         SpaceAwareAccessorAccessViolation
         SpaceAwareAccessor
