@@ -1322,15 +1322,19 @@ template <TeamHandle Handle, class... Properties>
 class ImplRangePolicy<Handle, Properties...>
     : public Impl::TeamVectorRangeBoundariesStruct<
           typename Impl::PolicyTraits<Properties...>::index_type, Handle> {
+  using base_t = typename Impl::TeamVectorRangeBoundariesStruct<
+      typename Impl::PolicyTraits<Properties...>::index_type, Handle>;
+
  public:
-  using index_type = typename Impl::PolicyTraits<Properties...>::index_type;
-  using base_t =
-      typename Impl::TeamVectorRangeBoundariesStruct<index_type, Handle>;
   using base_t::base_t;
 
-  using member_type = index_type;
+  using traits = typename Impl::PolicyTraits<Properties...>;
 
-  KOKKOS_INLINE_FUNCTION const Handle& team_member() const {
+  using team_handle      = typename traits::team_handle;
+  using member_type      = typename traits::index_type;
+  using index_type       = typename traits::index_type;
+
+  KOKKOS_INLINE_FUNCTION const team_handle& team_member() const {
     return static_cast<const base_t*>(this)->member;
   }
 
