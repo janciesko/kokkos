@@ -1332,9 +1332,9 @@ class ImplRangePolicy<Handle, Properties...>
   using traits = typename Impl::PolicyTraits<Properties...>;
   static_assert(std::same_as<typename traits::execution_type, Handle>);
 
-  using team_handle      = typename traits::team_handle;
-  using member_type      = typename traits::index_type;
-  using index_type       = typename traits::index_type;
+  using team_handle = typename traits::team_handle;
+  using member_type = typename traits::index_type;
+  using index_type  = typename traits::index_type;
 
   KOKKOS_INLINE_FUNCTION const team_handle& team_member() const {
     return static_cast<const base_t*>(this)->member;
