@@ -59,6 +59,7 @@ class ImplRangePolicy<ExecSpace, Properties...>
     : public Impl::PolicyTraits<Properties...> {
  public:
   using traits = Impl::PolicyTraits<Properties...>;
+  static_assert(std::same_as<typename traits::execution_type, ExecSpace>);
 
  private:
   typename traits::execution_space m_space;
@@ -1329,6 +1330,7 @@ class ImplRangePolicy<Handle, Properties...>
   using base_t::base_t;
 
   using traits = typename Impl::PolicyTraits<Properties...>;
+  static_assert(std::same_as<typename traits::execution_type, Handle>);
 
   using team_handle      = typename traits::team_handle;
   using member_type      = typename traits::index_type;
