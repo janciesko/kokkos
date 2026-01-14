@@ -5,62 +5,16 @@
 
 namespace Test {
 
-template <class Policy>
-KOKKOS_INLINE_FUNCTION int check_runtime_inputs(
-    Policy& p, const typename Policy::index_type expected_begin,
-    const typename Policy::index_type expected_end,
-    const typename Policy::index_type chunk_size = 0) {
-  int nerrs = 0;
-
-  if (p.begin() != expected_begin) ++nerrs;
-  if (p.end() != expected_end) ++nerrs;
-
-  auto p2 = p.set_chunk_size(chunk_size);
-  if constexpr (Kokkos::ExecutionSpace<typename Policy::execution_type>)
-    if (p2.chunk_size() != chunk_size) ++nerrs;
-
-  return nerrs;
-}
-
-void test_self_similar_range_policy_runtime() {
-  using IndexType = typename Kokkos::DefaultExecutionSpace::size_type;
-
-  IndexType beg        = 5;
-  IndexType end        = 15;
-  IndexType chunk_size = 10;
-
-  auto p_execspace =
-      Kokkos::RangePolicy(Kokkos::DefaultExecutionSpace(), beg, end);
-  auto nerrs_exec_space =
-      check_runtime_inputs(p_execspace, beg, end, chunk_size);
-  ASSERT_EQ(nerrs_exec_space, 0);
-
-  int nerrs_team_handle;
-  using team_t = typename Kokkos::TeamPolicy<>::member_type;
-  Kokkos::parallel_reduce(
-      "check_runtime", Kokkos::TeamPolicy(1, Kokkos::AUTO()),
-      KOKKOS_LAMBDA(const team_t& team, int& nerrs) {
-        auto p_teamhandle = Kokkos::RangePolicy(team, beg, end);
-        auto tvr          = Kokkos::TeamVectorRange(team, beg, end);
-        nerrs = check_runtime_inputs(p_teamhandle, tvr.start, tvr.end);
-      },
-      nerrs_team_handle);
-  ASSERT_EQ(nerrs_team_handle, 0);
-}
-
 enum nesting_level {
   zero /*no nesting*/,
-  one /*team nesting*/,
-  two /*thread nesting*/,
-  three /*vector nesting*/,
-  four /*serial nesting*/
+  one /*team-level nesting*/,
+  two /*thread-level nesting*/,
+  three /*vector-level nesting*/,
+  four /*any other nesting level serializes execution*/
 };
 
 namespace Experimental {
-class Thread_handle {
- public:
-  int team_rank() const { return 1; }
-};
+class Thread_handle;
 class Vector_handle;
 class Serial_handle;
 }  // namespace Experimental
@@ -84,25 +38,55 @@ concept isTeamOrExecSpace = isTeamHandle<T> || Kokkos::is_execution_space_v<T>;
 template <nesting_level Level, class ExecType, class X, class Y>
 KOKKOS_INLINE_FUNCTION void sum_views(const ExecType& handle, const X& x,
                                       const Y& y) {
+  assert(isTeamHandle<ExecType>() || isThreadHandle<ExecType>() ||
+         isVectorHandle<ExecType>() || isSerialHandle<ExecType>());
   if constexpr (Level == nesting_level::zero || Level == nesting_level::one) {
-    // ExecSpace or TeamPolicy or ThreadPolicy or VectorPolicy or SerialPolicy
     auto policy = Kokkos::RangePolicy(handle, 0, x.extent(0));
     Kokkos::parallel_for(
         policy, KOKKOS_LAMBDA(const int& i) { x(i) += y(i); });
   } else if constexpr (Level == nesting_level::two) {
-    // ExecSpace or TeamPolicy or ThreadPolicy
+    assert(isTeamHandle<ExecType>() || isThreadHandle<ExecType>() ||
+           isVectorHandle<ExecType>());
     auto policy = Kokkos::RangePolicy(handle, 0, x.extent(0));
     Kokkos::parallel_for(
-        policy, KOKKOS_LAMBDA(const Experimental::Thread_handle& thread) {
-          (void)thread;
+        policy, KOKKOS_LAMBDA(const ExecType& handle) {
           sum_views<nesting_level::one>(
               handle,
-              Kokkos::subview(x, handle.team_rank() /*thread ID*/,
-                              Kokkos::ALL()),
-              Kokkos::subview(y, thread.team_rank(), Kokkos::ALL()));
+              Kokkos::subview(x,
+                              handle.get_resouce_id(),  // get the right exec
+                                                        // resource handle index
+                              Kokkos::ALL(), Kokkos::ALL()),
+              Kokkos::subview(y, handle.get_resouce_id(), Kokkos::ALL(),
+                              Kokkos::ALL()));
         });
   } else if constexpr (Level == nesting_level::three) {
+    assert(isTeamHandle<ExecType>() || isThreadHandle<ExecType>());
+    auto policy = Kokkos::RangePolicy(handle, 0, x.extent(0));
+    Kokkos::parallel_for(
+        policy, KOKKOS_LAMBDA(const ExecType& handle) {
+          sum_views<nesting_level::two>(
+              handle,
+              Kokkos::subview(x,
+                              handle.get_resouce_id(),  // get the right exec
+                                                        // resource handle index
+                              Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL()),
+              Kokkos::subview(y, handle.get_resouce_id(), Kokkos::ALL(),
+                              Kokkos::ALL(), Kokkos::ALL()));
+        });
   } else if constexpr (Level == nesting_level::four) {
+    assert(isTeamHandle<ExecType>());
+    auto policy = Kokkos::RangePolicy(handle, 0, x.extent(0));
+    Kokkos::parallel_for(
+        policy, KOKKOS_LAMBDA(const ExecType& handle) {
+          sum_views<nesting_level::three>(
+              handle,
+              Kokkos::subview(
+                  x, handle.get_resouce_id(),  // get the right exec resource
+                                               // handle index
+                  Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL()),
+              Kokkos::subview(y, handle.get_resouce_id(), Kokkos::ALL(),
+                              Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL()));
+        });
   }
 }
 
@@ -110,99 +94,166 @@ template <int>
 void test_self_similar_range_policy_computation();
 
 template <>
-void test_self_similar_range_policy_computation<nesting_level::one>() {
-  int N         = 7;
-  int num_teams = 5;
+void test_self_similar_range_policy_computation<nesting_level::zero>() {
+  int dim0 = 7;  // e.g. some work per team
 
-  Kokkos::View<float*> v_x("v_x", N), v_y("v_y", N);
-  Kokkos::View<float**> M_x("M_x", num_teams, N), M_y("M_y", num_teams, N);
+  Kokkos::View<float*> v_x("v_x", dim0), v_y("v_y", dim0);
   Kokkos::deep_copy(v_x, 1);
   Kokkos::deep_copy(v_y, 2);
+
+  // No nesting (nesting level 0)
+  sum_views<nesting_level::zero>(Kokkos::DefaultExecutionSpace(), v_x, v_y);
+
+  // check
+  size_t result = 0;
+  Kokkos::parallel_reduce(
+      "Check", v_x.extent(0),
+      KOKKOS_LAMBDA(int i, size_t& val) { val += v_x(i); }, result);
+
+  ASSERT_EQ(result, size_t(3) * v_x.extent(0));
+}
+
+template <>
+void test_self_similar_range_policy_computation<nesting_level::one>() {
+  int dim0 = 5;  // e.g. num teams
+  int dim1 = 7;  // e.g. some work per team
+
+  Kokkos::View<float**> M_x("M_x", dim0, dim1), M_y("M_y", dim0, dim1);
   Kokkos::deep_copy(M_x, 1);
   Kokkos::deep_copy(M_y, 2);
 
-  // Call sum_views(ExecSpace)
-  sum_views<nesting_level::zero>(Kokkos::DefaultExecutionSpace(), v_x, v_y);
-
-  // call sum_views(TeamHandle)
-  using team_t = typename Kokkos::TeamPolicy<>::member_type;
+  using handle_t = typename Kokkos::TeamPolicy<>::member_type;
   Kokkos::parallel_for(
-      "apxyFromTeam", Kokkos::TeamPolicy(num_teams, Kokkos::AUTO()),
-      KOKKOS_LAMBDA(const team_t& team) {
+      "apxyFromTeam", Kokkos::TeamPolicy(dim0, Kokkos::AUTO()),
+      KOKKOS_LAMBDA(const handle_t& handle) {
         sum_views<nesting_level::one>(
-            team, Kokkos::subview(M_x, team.league_rank(), Kokkos::ALL()),
-            Kokkos::subview(M_y, team.league_rank(), Kokkos::ALL()));
+            handle, Kokkos::subview(M_x, handle.league_rank(), Kokkos::ALL()),
+            Kokkos::subview(M_y, handle.league_rank(), Kokkos::ALL()));
       });
 
   // check
   size_t result = 0;
   Kokkos::parallel_reduce(
-      "Check1", v_x.extent(0),
-      KOKKOS_LAMBDA(int i, size_t& val) { val += v_x(i); }, result);
-  ASSERT_EQ(result, size_t(3) * v_x.extent(0));
-  Kokkos::parallel_reduce(
-      "Check2", M_x.extent(0),
+      "Check", M_x.extent(0),
       KOKKOS_LAMBDA(int i, size_t& val) {
         for (int j = 0; j < M_x.extent_int(1); j++) val += M_x(i, j);
       },
       result);
+
   ASSERT_EQ(result, size_t(3) * M_x.extent(0) * M_x.extent(1));
 }
 
 #if 0
 template <>
 void test_self_similar_range_policy_computation<nesting_level::two>() {
-  int N         = 7;
-  int num_teams = 5;
+  int dim0 = 7; //e.g. num teams
+  int dim1 = 5; //e.g. num threads per team
+  int dim2 = 5; //e.g. some work per thread
 
-  Kokkos::View<float*> v_x("v_x", N), v_y("v_y", N);
-  Kokkos::View<float**> M_x("M_x", num_teams, N), M_y("M_y", num_teams, N);
-  Kokkos::deep_copy(v_x, 1);
-  Kokkos::deep_copy(v_y, 2);
+  Kokkos::View<float***> M_x("M_x", dim0, dim1, dim2), M_y("M_y", dim0, dim1, dim2);
   Kokkos::deep_copy(M_x, 1);
   Kokkos::deep_copy(M_y, 2);
 
-  // Call sum_views(ExecSpace)
-  sum_views<nesting_level::two>(Kokkos::DefaultExecutionSpace(), v_x, v_y);
-
-  // call sum_views(TeamHandle)
+  // Nesting level 2
   using team_t = typename Kokkos::TeamPolicy<>::member_type;
   Kokkos::parallel_for(
       "apxyFromTeam", Kokkos::TeamPolicy(num_teams, Kokkos::AUTO()),
       KOKKOS_LAMBDA(const team_t& team) {
-        sum_views<nesting_level::two>(
-            team, Kokkos::subview(M_x, team.league_rank(), Kokkos::ALL()),
-            Kokkos::subview(M_y, team.league_rank(), Kokkos::ALL()));
+        // call sum_views(TeamHandle) (nesting level 2)
+        sum_views<nesting_level::two>(team, Kokkos::subview(M_x, team.league_rank(), Kokkos::ALL(), Kokkos::ALL()),
+                  Kokkos::subview(M_y, team.league_rank(), Kokkos::ALL(), Kokkos::ALL()));
       });
-
   // check
   size_t result = 0;
   Kokkos::parallel_reduce(
-      "Check1", v_x.extent(0),
-      KOKKOS_LAMBDA(int i, size_t& val) { val += v_x(i); }, result);
-  ASSERT_EQ(result, size_t(3) * v_x.extent(0));
-  Kokkos::parallel_reduce(
-      "Check2", M_x.extent(0),
+      "Check", M_x.extent(0),
       KOKKOS_LAMBDA(int i, size_t& val) {
-        for (int j = 0; j < M_x.extent_int(1); j++) val += M_x(i, j);
+        for (int j = 0; j < M_x.extent_int(1); j++)
+          for (int k = 0; k < M_x.extent_int(2); k++) val += M_x(i, j, k);
       },
       result);
   ASSERT_EQ(result, size_t(3) * M_x.extent(0) * M_x.extent(1));
 }
-#endif
 
-TEST(TEST_CATEGORY, self_similar_range_policy_runtime) {
-  test_self_similar_range_policy_runtime();
-  test_self_similar_range_policy_runtime();
-  test_self_similar_range_policy_runtime();
+template <>
+void test_self_similar_range_policy_computation<nesting_level::three>() {
+  int dim0 = 7; //e.g. num teams
+  int dim1 = 5; //e.g. num threads per team
+  int dim2 = 5; //e.g. some work per thread
+  int dim3 = 6; //e.g. some work per vector lane
+
+  Kokkos::View<float****> M_x("M_x", dim0, dim1, dim2, dim3), M_y("M_y", dim0, dim1, dim2, dim3);
+  Kokkos::deep_copy(M_x, 1);
+  Kokkos::deep_copy(M_y, 2);
+
+  // Nesting level 3
+  using team_t = typename Kokkos::TeamPolicy<>::member_type;
+  Kokkos::parallel_for(
+      "apxyFromTeam", Kokkos::TeamPolicy(num_teams, Kokkos::AUTO()),
+      KOKKOS_LAMBDA(const team_t& team) {
+        // call sum_views(TeamHandle) (nesting level 3)
+        sum_views<nesting_level::three>(team, Kokkos::subview(M_x, team.league_rank(), Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL()),
+                  Kokkos::subview(M_y, team.league_rank(), Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL()));
+      });
+  
+  // check
+  size_t result = 0;
+  Kokkos::parallel_reduce(
+      "Check", M_x.extent(0),
+      KOKKOS_LAMBDA(int i, size_t& val) {
+        for (int j = 0; j < M_x.extent_int(1); j++)
+          for (int k = 0; k < M_x.extent_int(2); k++)
+            for (int l = 0; l < M_x.extent_int(3); l++) val += M_x(i, j, k, l);
+      },
+      result);
+  ASSERT_EQ(result, size_t(3) * M_x.extent(0) * M_x.extent(1));
 }
 
+template <>
+void test_self_similar_range_policy_computation<nesting_level::four>() {
+  int dim0 = 7; //e.g. num teams
+  int dim1 = 5; //e.g. num threads per team
+  int dim2 = 5; //e.g. some work per thread
+  int dim3 = 6; //e.g. some work per vector lane
+  int dim4 = 7; //e.g. some work for serial execution
+
+  Kokkos::View<float*****> M_x("M_x", dim0, dim1, dim2, dim3, dim4), M_y("M_y", dim0, dim1, dim2, dim3, dim4);
+  Kokkos::deep_copy(M_x, 1);
+  Kokkos::deep_copy(M_y, 2);
+
+  // Nesting level 4
+  using team_t = typename Kokkos::TeamPolicy<>::member_type;
+  Kokkos::parallel_for(
+      "apxyFromTeam", Kokkos::TeamPolicy(num_teams, Kokkos::AUTO()),
+      KOKKOS_LAMBDA(const team_t& team) {
+        // call sum_views(TeamHandle) (nesting level 4)
+        sum_views<nesting_level::four>(team, Kokkos::subview(M_x, team.league_rank(), Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL()),
+                  Kokkos::subview(M_y, team.league_rank(), Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL()));
+      });
+  // check
+  size_t result = 0;
+  Kokkos::parallel_reduce(
+      "Check", M_x.extent(0),
+      KOKKOS_LAMBDA(int i, size_t& val) {
+        for (int j = 0; j < M_x.extent_int(1); j++)
+          for (int k = 0; k < M_x.extent_int(2); k++)
+            for (int l = 0; l < M_x.extent_int(3); l++)
+              for (int m = 0; m < M_x.extent_int(4); m++) val += M_x(i, j, k, l, m);
+      },
+      result);
+  ASSERT_EQ(result, size_t(3) * M_x.extent(0) * M_x.extent(1));
+}
+
+#endif
+
 TEST(TEST_CATEGORY, self_similar_range_policy_computation) {
+  test_self_similar_range_policy_computation<nesting_level::zero>();
   test_self_similar_range_policy_computation<nesting_level::one>();
-  #if 0
+#if 0
   test_self_similar_range_policy_computation<nesting_level::two>();
   test_self_similar_range_policy_computation<nesting_level::three>();
-  #endif
+  test_self_similar_range_policy_computation<nesting_level::four>();
+#endif
 }
 
 }  // namespace Test
