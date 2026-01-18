@@ -1352,7 +1352,7 @@ class ImplRangePolicy<Handle, Properties...>
 /** \brief  Execution policy for work over a range of an integral type.
  *
  * RangePolicy has two partial specializations: RangePolicy<ExecSpace> and
- * RangePolicy<TeamHandle>. The former parallizes over all resources of an
+ * RangePolicy<TeamHandle>. The former parallelizes over all resources of an
  * execution space, and the latter over all resources of a thread team.
  *
  * Valid template argument options:
@@ -1367,7 +1367,7 @@ class ImplRangePolicy<Handle, Properties...>
  *    < TeamHandle , void >
  *    < TeamHandle , IntType >
  *
- *  Without specifying an execution type, default behavoir is using
+ *  Without specifying an execution type, default behavior is using
  * DefaultExecutionSpace with the following template arguments: < WorkTag , {
  * IntConst | IntType } , void > < WorkTag , void , void > < { IntConst |
  * IntType } , void , void > < void , void , void >
