@@ -1332,13 +1332,8 @@ class ImplRangePolicy<Handle, Properties...>
   using traits = typename Impl::PolicyTraits<Properties...>;
   static_assert(std::same_as<typename traits::execution_type, Handle>);
 
-  using team_handle = typename traits::team_handle;
   using member_type = typename traits::index_type;
   using index_type  = typename traits::index_type;
-
-  KOKKOS_INLINE_FUNCTION const team_handle& team_member() const {
-    return static_cast<const base_t*>(this)->member;
-  }
 
   KOKKOS_INLINE_FUNCTION member_type begin() const {
     return static_cast<const base_t*>(this)->start;
@@ -1392,16 +1387,6 @@ class RangePolicy
       typename Impl::PolicyTraits<Properties...>::execution_type;
   using base_t = ImplRangePolicy<execution_type, Properties...>;
   using base_t::base_t;
-
-  // Return the execution type of the range policy (execution space or team
-  // handle)
-  KOKKOS_INLINE_FUNCTION const execution_type& exec() const {
-    if constexpr (ExecutionSpace<execution_type>) {
-      return static_cast<const base_t*>(this)->space();
-    } else if constexpr (TeamHandle<execution_type>) {
-      return static_cast<const base_t*>(this)->team_handle();
-    }
-  }
 
   // Set chunk size and return the policy. For team handle specialization, this
   // is a no-op.
