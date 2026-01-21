@@ -1343,9 +1343,10 @@ class ImplRangePolicy<Handle, Properties...>
   }
 
   KOKKOS_INLINE_FUNCTION member_type chunk_size() const {
-    Kokkos::abort(
-        "Chunk size is not implemented for Kokkos::RangePolicy<TeamHandle>.");
-    return member_type();
+    // Chunk size has no meaning currently in this specialization.
+    // Returning 1 to allow self-similar code using RangePolicy<ExecSpace> to
+    // query chunk_size.
+    return 1;
   }
 };
 

@@ -9,15 +9,14 @@ template <class Policy>
 KOKKOS_INLINE_FUNCTION int check_runtime_inputs(
     Policy& p, const typename Policy::index_type expected_begin,
     const typename Policy::index_type expected_end,
-    const typename Policy::index_type chunk_size = 0) {
+    const typename Policy::index_type chunk_size = 1) {
   int nerrs = 0;
 
   if (p.begin() != expected_begin) ++nerrs;
   if (p.end() != expected_end) ++nerrs;
 
   auto p2 = p.set_chunk_size(chunk_size);
-  if constexpr (Kokkos::ExecutionSpace<typename Policy::execution_type>)
-    if (p2.chunk_size() != chunk_size) ++nerrs;
+  if (p2.chunk_size() != chunk_size) ++nerrs;
 
   return nerrs;
 }
