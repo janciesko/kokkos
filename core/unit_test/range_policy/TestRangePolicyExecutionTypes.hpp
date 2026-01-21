@@ -61,15 +61,35 @@ void test_self_similar_range_policy_computation() {
 
   Kokkos::View<float*> v_x("v_x", N), v_y("v_y", N);
   Kokkos::View<float**> M_x("M_x", num_teams, N), M_y("M_y", num_teams, N);
-  Kokkos::deep_copy(v_x, 1);
-  Kokkos::deep_copy(v_y, 2);
-  Kokkos::deep_copy(M_x, 1);
-  Kokkos::deep_copy(M_y, 2);
 
-  // Call sum_views(ExecSpace)
+  // Initialize v_x and v_y with values from 1 to N
+  Kokkos::parallel_for(
+      "init_v_x", Kokkos::RangePolicy<>(0, N),
+      KOKKOS_LAMBDA(const int& i) { v_x(i) = static_cast<float>(i + 1); });
+  Kokkos::parallel_for(
+      "init_v_y", Kokkos::RangePolicy<>(0, N),
+      KOKKOS_LAMBDA(const int& i) { v_y(i) = static_cast<float>(i + 1); });
+
+  // Initialize M_x and M_y with values from 1 to M (flattened index)
+  Kokkos::parallel_for(
+      "init_M_x", Kokkos::RangePolicy<>(0, num_teams),
+      KOKKOS_LAMBDA(const int& i) {
+        for (int j = 0; j < N; j++) {
+          M_x(i, j) = static_cast<float>(i * N + j + 1);
+        }
+      });
+  Kokkos::parallel_for(
+      "init_M_y", Kokkos::RangePolicy<>(0, num_teams),
+      KOKKOS_LAMBDA(const int& i) {
+        for (int j = 0; j < N; j++) {
+          M_y(i, j) = static_cast<float>(i * N + j + 1);
+        }
+      });
+
+  // Call sum_views(ExecSpace):
   sum_views(Kokkos::DefaultExecutionSpace(), v_x, v_y);
 
-  // call sum_views(TeamHandle)
+  // Call sum_views(TeamHandle)
   using team_t = typename Kokkos::TeamPolicy<>::member_type;
   Kokkos::parallel_for(
       "apxyFromTeam", Kokkos::TeamPolicy(num_teams, Kokkos::AUTO()),
@@ -78,19 +98,47 @@ void test_self_similar_range_policy_computation() {
                   Kokkos::subview(M_y, team.league_rank(), Kokkos::ALL()));
       });
 
-  // check
+  // Check v_x
   size_t result = 0;
   Kokkos::parallel_reduce(
       "Check1", v_x.extent(0),
       KOKKOS_LAMBDA(int i, size_t& val) { val += v_x(i); }, result);
-  ASSERT_EQ(result, size_t(3) * v_x.extent(0));
+  size_t expected_v_x = N * (N + 1);
+  ASSERT_EQ(result, expected_v_x);
+
+  // Check individual elements of v_x
+  Kokkos::parallel_reduce(
+      "Check1_elements", v_x.extent(0),
+      KOKKOS_LAMBDA(int i, size_t& errors) {
+        float expected = static_cast<float>(2 * (i + 1));
+        if (v_x(i) != expected) ++errors;
+      },
+      result);
+  ASSERT_EQ(result, size_t(0));
+
+  // Check M_x
+  result = 0;
   Kokkos::parallel_reduce(
       "Check2", M_x.extent(0),
       KOKKOS_LAMBDA(int i, size_t& val) {
         for (int j = 0; j < M_x.extent_int(1); j++) val += M_x(i, j);
       },
       result);
-  ASSERT_EQ(result, size_t(3) * M_x.extent(0) * M_x.extent(1));
+  size_t M_total      = num_teams * N;
+  size_t expected_M_x = M_total * (M_total + 1);
+  ASSERT_EQ(result, expected_M_x);
+
+  // Check individual elements of M_x
+  Kokkos::parallel_reduce(
+      "Check2_elements", M_x.extent(0),
+      KOKKOS_LAMBDA(int i, size_t& errors) {
+        for (int j = 0; j < M_x.extent_int(1); j++) {
+          float expected = static_cast<float>(2 * (i * N + j + 1));
+          if (M_x(i, j) != expected) ++errors;
+        }
+      },
+      result);
+  ASSERT_EQ(result, size_t(0));
 }
 
 TEST(TEST_CATEGORY, self_similar_range_policy_runtime) {
