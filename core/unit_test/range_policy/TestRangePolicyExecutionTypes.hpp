@@ -56,8 +56,8 @@ KOKKOS_INLINE_FUNCTION void sum_views(const Exec& exec, const X& x,
 }
 
 void test_self_similar_range_policy_computation() {
-  int N         = 7;
-  int num_teams = 5;
+  size_t N         = 7;
+  size_t num_teams = 5;
 
   Kokkos::View<float*> v_x("v_x", N), v_y("v_y", N);
   Kokkos::View<float**> M_x("M_x", num_teams, N), M_y("M_y", num_teams, N);
@@ -74,14 +74,14 @@ void test_self_similar_range_policy_computation() {
   Kokkos::parallel_for(
       "init_M_x", Kokkos::RangePolicy<>(0, num_teams),
       KOKKOS_LAMBDA(const int& i) {
-        for (int j = 0; j < N; j++) {
+        for (size_t j = 0; j < N; j++) {
           M_x(i, j) = static_cast<float>(i * N + j + 1);
         }
       });
   Kokkos::parallel_for(
       "init_M_y", Kokkos::RangePolicy<>(0, num_teams),
       KOKKOS_LAMBDA(const int& i) {
-        for (int j = 0; j < N; j++) {
+        for (size_t j = 0; j < N; j++) {
           M_y(i, j) = static_cast<float>(i * N + j + 1);
         }
       });
