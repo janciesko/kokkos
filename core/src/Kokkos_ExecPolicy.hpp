@@ -1335,6 +1335,10 @@ class ImplRangePolicy<Handle, Properties...>
   using member_type = typename traits::index_type;
   using index_type  = typename traits::index_type;
 
+  KOKKOS_INLINE_FUNCTION const typename traits::team_handle& space() const {
+    return static_cast<const base_t*>(this)->member;
+  }
+
   KOKKOS_INLINE_FUNCTION member_type begin() const {
     return static_cast<const base_t*>(this)->start;
   }
