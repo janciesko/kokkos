@@ -206,7 +206,9 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenACC;HIP;SYCL)
 
     # Add additional test(s) from subdirectory range_policy
     set(file ${dir}/Test${Tag}_RangePolicyExecutionTypes.cpp)
-    file(WRITE ${dir}/dummy.cpp "#include <Test${Tag}_Category.hpp>\n" "#include <range_policy/TestRangePolicyExecutionTypes.hpp>\n")
+    file(WRITE ${dir}/dummy.cpp "#include <Test${Tag}_Category.hpp>\n"
+                                "#include <range_policy/TestRangePolicyExecutionTypes.hpp>\n"
+    )
     configure_file(${dir}/dummy.cpp ${file})
     list(APPEND ${Tag}_SOURCES1B ${file})
 
