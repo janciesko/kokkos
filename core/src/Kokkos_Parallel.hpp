@@ -115,9 +115,18 @@ namespace Kokkos {
  * This compares to a single iteration \c iwork of a \c for loop.
  * If \c execution_space is not defined DefaultExecutionSpace will be used.
  */
-template <Kokkos::ExecutionPolicy ExecPolicy, class FunctorType>
-inline void parallel_for(const std::string& str, const ExecPolicy& policy,
-                         const FunctorType& functor) {
+template <class Label, Kokkos::ExecutionPolicy ExecPolicy, class FunctorType>
+  requires(std::is_constructible_v<std::string, const Label&>)
+inline void parallel_for([[maybe_unused]] const Label& label,
+                         const ExecPolicy& policy, const FunctorType& functor) {
+  // Work around unsuppressable warning of calling host (constexpr) function
+  // from host device function.
+  // This occurs when trying to instantiate this parallel for from inside
+  // a host-device function which is called on the host.
+  // The problem is the ctor from c-string for std::string
+  std::string str;
+  KOKKOS_IF_ON_HOST(str = std::string(label);)
+
   /** Enforce correct use **/
   Impl::CheckUsage<Impl::UsageRequires::insideExecEnv>::check(
       "parallel_for", policy, str.c_str());
@@ -133,8 +142,8 @@ inline void parallel_for(const std::string& str, const ExecPolicy& policy,
           Impl::ParallelFor<FunctorType, ExecPolicy>>(functor, inner_policy);
 
   closure.execute();
-
-  Kokkos::Tools::Impl::end_parallel_for(inner_policy, functor, str, kpID);
+  Kokkos::Tools::Impl::end_parallel_for(inner_policy, functor, std::string(str),
+                                        kpID);
 }
 
 template <Kokkos::ExecutionPolicy ExecPolicy, class FunctorType>
