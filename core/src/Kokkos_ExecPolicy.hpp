@@ -41,13 +41,15 @@ struct ChunkSize {
 #endif
 };
 
+template <typename... Properties>
+class RangePolicy;
+
 namespace Impl {
 // Private tag that can be used to make a copy of another execution policy
 // and set the underlying execution space instance.
 // It does NOT perform any sanity check.
 // For now, it is used in Kokkos::Experimental::Graph.
 struct PolicyUpdate {};
-}  // namespace Impl
 
 template <typename T, typename... Properties>
 class ImplRangePolicy;
@@ -72,7 +74,7 @@ class ImplRangePolicy<ExecSpace, Properties...>
   friend class ImplRangePolicy;
 
   template <class... OtherProperties>
-  friend class RangePolicy;
+  friend class Kokkos::RangePolicy;
 
  public:
   //! Tag this class as an execution policy
@@ -349,6 +351,7 @@ class ImplRangePolicy<ExecSpace, Properties...>
   };
 };
 
+}  // namespace Impl
 }  // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -1316,6 +1319,7 @@ struct PatternTagFromImplSpecialization<ParallelScan<Args...>>
 }  // namespace Kokkos
 
 namespace Kokkos {
+namespace Impl {
 
 // Specialization of RangePolicy for defining work over a range of an integral
 // type, split up among all resources of a thread team
@@ -1353,6 +1357,7 @@ class ImplRangePolicy<Handle, Properties...>
     return 1;
   }
 };
+}  // namespace Impl
 
 /** \brief  Execution policy for work over a range of an integral type.
  *
@@ -1384,13 +1389,13 @@ class ImplRangePolicy<Handle, Properties...>
  */
 template <typename... Properties>
 class RangePolicy
-    : public ImplRangePolicy<
+    : public Impl::ImplRangePolicy<
           typename Impl::PolicyTraits<Properties...>::execution_type,
           Properties...> {
  public:
   using execution_type =
       typename Impl::PolicyTraits<Properties...>::execution_type;
-  using base_t = ImplRangePolicy<execution_type, Properties...>;
+  using base_t = Impl::ImplRangePolicy<execution_type, Properties...>;
   using base_t::base_t;
 
   // Set chunk size and return the policy. For team handle specialization, this
