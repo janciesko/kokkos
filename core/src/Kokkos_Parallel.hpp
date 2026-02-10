@@ -142,8 +142,7 @@ inline void parallel_for([[maybe_unused]] const Label& label,
           Impl::ParallelFor<FunctorType, ExecPolicy>>(functor, inner_policy);
 
   closure.execute();
-  Kokkos::Tools::Impl::end_parallel_for(inner_policy, functor, std::string(str),
-                                        kpID);
+  Kokkos::Tools::Impl::end_parallel_for(inner_policy, functor, str, kpID);
 }
 
 template <Kokkos::ExecutionPolicy ExecPolicy, class FunctorType>
