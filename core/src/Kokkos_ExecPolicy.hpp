@@ -198,7 +198,6 @@ class ImplRangePolicy<ExecSpace, Properties...>
   inline void impl_set_chunk_size(int chunk_size) {
     m_granularity      = chunk_size;
     m_granularity_mask = m_granularity - 1;
-    return;
   }
 
   /** \brief finalize chunk_size if it was set to AUTO*/
