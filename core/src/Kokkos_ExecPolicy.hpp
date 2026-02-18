@@ -78,7 +78,7 @@ class ImplRangePolicy<ExecSpace, Properties...>
 
  public:
   //! Tag this class as an execution policy
-  using execution_policy = ImplRangePolicy<ExecSpace, Properties...>;
+  using execution_policy = Kokkos::RangePolicy<Properties...>;
   using member_type      = typename traits::index_type;
   using index_type       = typename traits::index_type;
 
