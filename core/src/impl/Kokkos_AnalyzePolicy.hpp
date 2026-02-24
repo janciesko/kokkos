@@ -187,8 +187,8 @@ struct ExecPolicyTraitsWithDefaults : AnalysisResults {
   // Define the "execution_type" to be whichever policy trait was explicitly set
   // (default to execspace if neither is set)
   using execution_type =
-      std::conditional_t<!base_t::team_handle_is_defaulted,
-                         typename base_t::team_handle, execution_space>;
+      std::conditional_t<base_t::team_handle_is_defaulted, execution_space,
+                         typename base_t::team_handle>;
 
   // The old code turned this into an integral type for backwards compatibility,
   // so that's what we're doing here. The original comment was:
