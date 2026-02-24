@@ -153,15 +153,15 @@ struct AnalyzeExecPolicyUseMatcher<void, type_list<>>
 //   - If TeamHandleTrait exist, type is team_handle::execution_space
 //   - Else, type is Kokkos::DefaultExecutionSpace
 template <class T>
-struct DefaultExecutionSpaceHelper;
+struct DefaultExecutionSpaceSelector;
 
 template <>
-struct DefaultExecutionSpaceHelper<void> {
+struct DefaultExecutionSpaceSelector<void> {
   using type = Kokkos::DefaultExecutionSpace;
 };
 
 template <Kokkos::TeamHandle T>
-struct DefaultExecutionSpaceHelper<T> {
+struct DefaultExecutionSpaceSelector<T> {
   using type = typename T::execution_space;
 };
 
@@ -179,10 +179,11 @@ struct ExecPolicyTraitsWithDefaults : AnalysisResults {
                 "policy traits.");
 
   // Query for the default execution space
-  using execution_space = typename std::conditional_t<
-      base_t::execution_space_is_defaulted,
-      typename DefaultExecutionSpaceHelper<typename base_t::team_handle>::type,
-      typename base_t::execution_space>;
+  using execution_space =
+      typename std::conditional_t<base_t::execution_space_is_defaulted,
+                                  typename DefaultExecutionSpaceSelector<
+                                      typename base_t::team_handle>::type,
+                                  typename base_t::execution_space>;
 
   // Define the "execution_type" to be whichever policy trait was explicitly set
   // (default to execspace if neither is set)
