@@ -172,7 +172,7 @@ struct ExecPolicyTraitsWithDefaults : AnalysisResults {
   using base_t = AnalysisResults;
   using base_t::base_t;
 
-  // It is invalid to explictly define both ExecSpace and TeamHandle traits
+  // It is invalid to explicitly define both ExecSpace and TeamHandle traits
   static_assert(base_t::execution_space_is_defaulted ||
                     base_t::team_handle_is_defaulted,
                 "Kokkos Error: Cannot give both ExecSpace and TeamHandle as "
