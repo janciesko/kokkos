@@ -45,6 +45,37 @@ void test_self_similar_range_policy_runtime() {
       },
       nerrs_team_handle);
   ASSERT_EQ(nerrs_team_handle, 0);
+
+  int nerrs_thread_handle;
+  Kokkos::parallel_reduce(
+      "check_runtime_thread", Kokkos::TeamPolicy(1, Kokkos::AUTO()),
+      KOKKOS_LAMBDA(const team_t& team, int& nerrs) {
+        auto p_threadhandle =
+            Kokkos::RangePolicy(Kokkos::ThreadHandle(team), beg, end);
+        auto ttr = Kokkos::TeamThreadRange(team, beg, end);
+        nerrs    = check_runtime_inputs(p_threadhandle, ttr.start, ttr.end);
+      },
+      nerrs_thread_handle);
+  ASSERT_EQ(nerrs_thread_handle, 0);
+}
+
+void test_handle_concurrency() {
+  using team_t = typename Kokkos::TeamPolicy<>::member_type;
+  int nerrs    = 0;
+  Kokkos::parallel_reduce(
+      "check_concurrency", Kokkos::TeamPolicy(1, Kokkos::AUTO()),
+      KOKKOS_LAMBDA(const team_t& team, int& errs) {
+        // TeamHandle: concurrency = team_size * vector_length
+        int team_conc     = team.concurrency();
+        int expected_team = team.team_size() * team.vector_length();
+        if (team_conc != expected_team) ++errs;
+
+        // ThreadHandle: concurrency = team_size
+        auto thread_handle = Kokkos::ThreadHandle(team);
+        if (thread_handle.concurrency() != team.team_size()) ++errs;
+      },
+      nerrs);
+  ASSERT_EQ(nerrs, 0);
 }
 
 template <class Exec, class X, class Y>
@@ -141,9 +172,83 @@ void test_self_similar_range_policy_computation() {
   ASSERT_EQ(result, size_t(0));
 }
 
+void test_nested_self_similar_use_case() {
+  const size_t N         = 16;
+  const size_t num_teams = 4;
+
+  Kokkos::View<float*> v_x("v_x", N), v_y("v_y", N);
+  Kokkos::View<float**> M_x("M_x", num_teams, N),
+      M_add2("M_add2", num_teams, N), M_add4("M_add4", num_teams, N);
+
+  Kokkos::parallel_for(
+      "init_v", Kokkos::RangePolicy<>(0, N), KOKKOS_LAMBDA(const size_t i) {
+        v_x(i) = 0.f;
+        v_y(i) = 1.f;
+      });
+  Kokkos::parallel_for(
+      "init_M", Kokkos::RangePolicy<>(0, num_teams),
+      KOKKOS_LAMBDA(const size_t i) {
+        for (size_t j = 0; j < N; j++) {
+          M_x(i, j)    = 0.f;
+          M_add2(i, j) = 2.f;
+          M_add4(i, j) = 4.f;
+        }
+      });
+
+  // Top-level: sum_views(exec) with ExecutionSpace
+  sum_views(Kokkos::DefaultExecutionSpace(), v_x, v_y);
+
+  // Nested: sum_views(team) inside TeamPolicy - uses TeamVectorRange
+  using team_t = typename Kokkos::TeamPolicy<>::member_type;
+  Kokkos::parallel_for(
+      "nested_team", Kokkos::TeamPolicy(num_teams, Kokkos::AUTO()),
+      KOKKOS_LAMBDA(const team_t& team) {
+        auto row_x = Kokkos::subview(M_x, team.league_rank(), Kokkos::ALL());
+        auto row_add2 =
+            Kokkos::subview(M_add2, team.league_rank(), Kokkos::ALL());
+        auto row_add4 =
+            Kokkos::subview(M_add4, team.league_rank(), Kokkos::ALL());
+
+        sum_views(team, row_x, row_add2);
+
+        // Nested: inner parallel_for passes (thread_handle, index) to lambda
+        Kokkos::parallel_for(
+            Kokkos::RangePolicy(Kokkos::ThreadHandle(team), 0, N),
+            KOKKOS_LAMBDA(const auto& thread_handle, const int j) {
+              if (j == 0) sum_views(thread_handle, row_x, row_add4);
+            });
+      });
+
+  // Verify: v_x = v_y (each element = 1)
+  size_t result = 0;
+  Kokkos::parallel_reduce(
+      "check_v", N,
+      KOKKOS_LAMBDA(size_t i, size_t & s) { s += static_cast<size_t>(v_x(i)); },
+      result);
+  ASSERT_EQ(result, N);
+
+  // Verify: M_x gets +2 +4 = 6 per element
+  result = 0;
+  Kokkos::parallel_reduce(
+      "check_M", Kokkos::RangePolicy<>(0, num_teams * N),
+      KOKKOS_LAMBDA(size_t i, size_t & s) {
+        int row = i / N;
+        int col = i % N;
+        s += static_cast<size_t>(M_x(row, col));
+      },
+      result);
+  ASSERT_EQ(result, num_teams * N * 6);
+}
+
 TEST(TEST_CATEGORY, self_similar_range_policy_runtime) {
   test_self_similar_range_policy_runtime();
 }
+
+TEST(TEST_CATEGORY, nested_self_similar_use_case) {
+  test_nested_self_similar_use_case();
+}
+
+TEST(TEST_CATEGORY, handle_concurrency) { test_handle_concurrency(); }
 
 TEST(TEST_CATEGORY, self_similar_range_policy_computation) {
   test_self_similar_range_policy_computation();
