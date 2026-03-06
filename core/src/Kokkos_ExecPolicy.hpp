@@ -41,6 +41,31 @@ struct ChunkSize {
 #endif
 };
 
+/** \brief Handle for thread-level parallelism within a team.
+ *
+ *  Use with RangePolicy to parallelize over threads in a team (TeamThreadRange
+ *  semantics). Construct from a team member: ThreadHandle(team).
+ */
+template <class TeamMemberType>
+struct ThreadHandle {
+  TeamMemberType const& member;
+  using execution_space = typename TeamMemberType::execution_space;
+  using thread_handle   = ThreadHandle;
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr ThreadHandle(TeamMemberType const& m) : member(m) {}
+
+  KOKKOS_INLINE_FUNCTION
+  int team_rank() const { return member.team_rank(); }
+
+  KOKKOS_INLINE_FUNCTION
+  int team_size() const { return member.team_size(); }
+
+  /** \brief Maximum concurrency at thread level (team_size). */
+  KOKKOS_INLINE_FUNCTION
+  int concurrency() const { return member.team_size(); }
+};
+
 template <typename... Properties>
 class RangePolicy;
 
@@ -1356,6 +1381,38 @@ class ImplRangePolicy<Handle, Properties...>
     return 1;
   }
 };
+
+// Specialization of RangePolicy for thread-level parallelism (TeamThreadRange
+// semantics)
+template <ThreadHandleType Handle, class... Properties>
+class ImplRangePolicy<Handle, Properties...>
+    : public Impl::TeamThreadRangeBoundariesStruct<
+          typename Impl::PolicyTraits<Properties...>::index_type, Handle> {
+  using base_t = typename Impl::TeamThreadRangeBoundariesStruct<
+      typename Impl::PolicyTraits<Properties...>::index_type, Handle>;
+
+ public:
+  using base_t::base_t;
+
+  using traits = typename Impl::PolicyTraits<Properties...>;
+  static_assert(std::same_as<typename traits::execution_type, Handle>);
+
+  using member_type = typename traits::index_type;
+  using index_type  = typename traits::index_type;
+
+  KOKKOS_INLINE_FUNCTION const typename traits::thread_handle& space() const {
+    return static_cast<const base_t*>(this)->member;
+  }
+
+  KOKKOS_INLINE_FUNCTION member_type begin() const {
+    return static_cast<const base_t*>(this)->start;
+  }
+  KOKKOS_INLINE_FUNCTION member_type end() const {
+    return static_cast<const base_t*>(this)->end;
+  }
+
+  KOKKOS_INLINE_FUNCTION member_type chunk_size() const { return 1; }
+};
 }  // namespace Impl
 
 /** \brief  Execution policy for work over a range of an integral type.
@@ -1410,9 +1467,11 @@ class RangePolicy
 };
 
 namespace Impl {
-// Helper concept for capturing both exec space and team handle
+// Helper concept for capturing exec space and all handle types
 template <class ExecType>
-concept ExecutionTypeConcept = ExecutionSpace<ExecType> || TeamHandle<ExecType>;
+concept ExecutionTypeConcept =
+    ExecutionSpace<ExecType> || TeamHandle<ExecType> ||
+    Kokkos::ThreadHandleType<ExecType>;
 }  // namespace Impl
 
 // Deduction guide

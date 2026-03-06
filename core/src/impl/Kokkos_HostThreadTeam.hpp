@@ -11,8 +11,9 @@
 #include <impl/Kokkos_FunctorAnalysis.hpp>
 #include <impl/Kokkos_HostBarrier.hpp>
 
-#include <limits>     // std::numeric_limits
-#include <algorithm>  // std::max
+#include <limits>       // std::numeric_limits
+#include <algorithm>    // std::max
+#include <type_traits>  // std::is_invocable_v
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -442,6 +443,14 @@ class HostThreadTeamMember {
   KOKKOS_INLINE_FUNCTION
   int team_size() const noexcept { return m_data.m_team_size; }
 
+  /** \brief Number of vector lanes per thread (1 for host). */
+  KOKKOS_INLINE_FUNCTION
+  static constexpr int vector_length() noexcept { return 1; }
+
+  /** \brief Maximum concurrency at team level (team_size for host). */
+  KOKKOS_INLINE_FUNCTION
+  int concurrency() const noexcept { return m_data.m_team_size; }
+
   KOKKOS_INLINE_FUNCTION
   int league_rank() const noexcept { return m_league_rank; }
 
@@ -766,6 +775,25 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
   for (iType i = loop_boundaries.start; i < loop_boundaries.end;
        i += loop_boundaries.increment) {
     closure(i);
+  }
+}
+
+template <typename iType, class MemberType, class Closure>
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<Impl::is_host_thread_team_member<MemberType>::value>
+    parallel_for(
+        Impl::TeamThreadRangeBoundariesStruct<
+            iType, Kokkos::ThreadHandle<MemberType>> const& loop_boundaries,
+        Closure const& closure) {
+  auto const& handle = loop_boundaries.member;
+  for (iType i = loop_boundaries.start + handle.team_rank();
+       i < loop_boundaries.end; i += handle.team_size()) {
+    if constexpr (std::is_invocable_v<Closure, decltype(handle) const&,
+                                      iType>) {
+      closure(handle, i);
+    } else {
+      closure(i);
+    }
   }
 }
 

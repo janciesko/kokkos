@@ -20,6 +20,7 @@
 #include <Kokkos_Vectorization.hpp>
 
 #include <impl/Kokkos_Tools.hpp>
+#include <type_traits>
 #include <typeinfo>
 
 //----------------------------------------------------------------------------
@@ -97,6 +98,17 @@ class CudaTeamMember {
   KOKKOS_INLINE_FUNCTION int team_size() const {
     KOKKOS_IF_ON_DEVICE((return blockDim.y;))
     KOKKOS_IF_ON_HOST((return 1;))
+  }
+
+  /** \brief Number of vector lanes per thread (blockDim.x). */
+  KOKKOS_INLINE_FUNCTION int vector_length() const {
+    KOKKOS_IF_ON_DEVICE((return blockDim.x;))
+    KOKKOS_IF_ON_HOST((return 1;))
+  }
+
+  /** \brief Maximum concurrency at team level (team_size * vector_length). */
+  KOKKOS_INLINE_FUNCTION int concurrency() const {
+    return team_size() * vector_length();
   }
 
   KOKKOS_INLINE_FUNCTION void team_barrier() const {
@@ -491,6 +503,26 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
             i < loop_boundaries.end; i += blockDim.y) { closure(i); }))
 }
 
+template <typename iType, class Closure>
+KOKKOS_INLINE_FUNCTION void parallel_for(
+    const Impl::TeamThreadRangeBoundariesStruct<
+        iType, Kokkos::ThreadHandle<Impl::CudaTeamMember>>& loop_boundaries,
+    const Closure& closure) {
+  (void)loop_boundaries;
+  (void)closure;
+  KOKKOS_IF_ON_DEVICE(
+      (auto const& handle = loop_boundaries.member;
+       for (iType i = loop_boundaries.start + handle.team_rank();
+            i < loop_boundaries.end; i += handle.team_size()) {
+         if constexpr (std::is_invocable_v<Closure, decltype(handle) const&,
+                                           iType>) {
+           closure(handle, i);
+         } else {
+           closure(i);
+         }
+       }))
+}
+
 //----------------------------------------------------------------------------
 
 /** \brief  Inter-thread parallel_reduce with a reducer.
@@ -691,8 +723,6 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
                      : ((1 << blockDim.x) - 1)
                            << (threadIdx.y % (32 / blockDim.x)) * blockDim.x);))
 }
-
-//----------------------------------------------------------------------------
 
 /** \brief  Intra-thread vector parallel_reduce.
  *

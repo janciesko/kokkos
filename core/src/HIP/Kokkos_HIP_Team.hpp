@@ -100,6 +100,20 @@ class HIPTeamMember {
 #endif
   }
 
+  /** \brief Number of vector lanes per thread (blockDim.x). */
+  KOKKOS_INLINE_FUNCTION int vector_length() const {
+#ifdef __HIP_DEVICE_COMPILE__
+    return blockDim.x;
+#else
+    return 1;
+#endif
+  }
+
+  /** \brief Maximum concurrency at team level (team_size * vector_length). */
+  KOKKOS_INLINE_FUNCTION int concurrency() const {
+    return team_size() * vector_length();
+  }
+
   KOKKOS_INLINE_FUNCTION void team_barrier() const {
 #ifdef __HIP_DEVICE_COMPILE__
     if (1 == blockDim.z)

@@ -59,6 +59,14 @@ class SYCLTeamMember {
   KOKKOS_INLINE_FUNCTION int team_size() const {
     return m_item.get_local_range(0);
   }
+  /** \brief Number of vector lanes per thread (dimension 1). */
+  KOKKOS_INLINE_FUNCTION int vector_length() const {
+    return m_item.get_local_range(1);
+  }
+  /** \brief Maximum concurrency at team level (team_size * vector_length). */
+  KOKKOS_INLINE_FUNCTION int concurrency() const {
+    return team_size() * vector_length();
+  }
   KOKKOS_INLINE_FUNCTION void team_barrier() const {
     sycl::group_barrier(m_item.get_group());
   }
