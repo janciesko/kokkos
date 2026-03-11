@@ -173,7 +173,7 @@ struct DefaultExecutionSpaceSelector<T> {
 
 // Helper to get the primary handle type for execution space/type deduction
 template <class AnalysisResults>
-struct PrimaryHandleSelector {
+struct HandleSelector {
   using type = std::conditional_t<
       !AnalysisResults::thread_handle_is_defaulted,
       typename AnalysisResults::thread_handle,
@@ -188,7 +188,7 @@ struct ExecPolicyTraitsWithDefaults : AnalysisResults {
   using base_t = AnalysisResults;
   using base_t::base_t;
 
-  using primary_handle = typename PrimaryHandleSelector<base_t>::type;
+  using handle = typename HandleSelector<base_t>::type;
 
   // At most one of ExecSpace, TeamHandle, or ThreadHandle may be specified
   static_assert(
@@ -204,13 +204,13 @@ struct ExecPolicyTraitsWithDefaults : AnalysisResults {
   // Query for the default execution space
   using execution_space = typename std::conditional_t<
       base_t::execution_space_is_defaulted,
-      typename DefaultExecutionSpaceSelector<primary_handle>::type,
+      typename DefaultExecutionSpaceSelector<handle>::type,
       typename base_t::execution_space>;
 
   // Define the "execution_type" to be whichever policy trait was explicitly set
   // (default to execspace if no handle is set)
-  using execution_type = std::conditional_t<std::is_void_v<primary_handle>,
-                                            execution_space, primary_handle>;
+  using execution_type =
+      std::conditional_t<std::is_void_v<handle>, execution_space, handle>;
 
   // The old code turned this into an integral type for backwards compatibility,
   // so that's what we're doing here. The original comment was:
