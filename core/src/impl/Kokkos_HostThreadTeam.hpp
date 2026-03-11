@@ -788,8 +788,7 @@ KOKKOS_INLINE_FUNCTION
   auto const& handle = loop_boundaries.member;
   for (iType i = loop_boundaries.start + handle.team_rank();
        i < loop_boundaries.end; i += handle.team_size()) {
-    if constexpr (std::is_invocable_v<Closure, decltype(handle) const&,
-                                      iType>) {
+    if constexpr (std::is_invocable_v<Closure, decltype(handle)&, iType>) {
       closure(handle, i);
     } else {
       closure(i);
