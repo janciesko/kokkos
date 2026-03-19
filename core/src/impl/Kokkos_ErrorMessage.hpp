@@ -50,7 +50,9 @@ enum class Type {
   CalledAfterFini,
   InstanceConstructionBeforeInit,
   InstanceConstructionAfterFini,
-  InstanceDestructionAfterFini
+  InstanceDestructionAfterFini,
+  ViewAllocationBeforeInit,
+  ViewAllocationAfterFini
 };
 
 template <Type>
@@ -126,6 +128,34 @@ struct Message<Type::InstanceDestructionAfterFini> {
     ss << "Kokkos ERROR: " << arg
        << " execution space is being destructed after finalize() has been "
           "called";
+    return ss.str();
+  }
+};
+
+template <>
+struct Message<Type::ViewAllocationBeforeInit> {
+  std::string label;
+  Message(std::string_view label_) : label(label_) {}
+
+  std::string get() const {
+    std::ostringstream ss;
+    ss << "Kokkos ERROR: View ";
+    if (!label.empty()) ss << "(label=\"" << label << "\") ";
+    ss << "is being constructed before initialize() has been called";
+    return ss.str();
+  }
+};
+
+template <>
+struct Message<Type::ViewAllocationAfterFini> {
+  std::string label;
+  Message(std::string_view label_) : label(label_) {}
+
+  std::string get() const {
+    std::ostringstream ss;
+    ss << "Kokkos ERROR: View ";
+    if (!label.empty()) ss << "(label=\"" << label << "\") ";
+    ss << "is being constructed after finalize() has been called";
     return ss.str();
   }
 };
