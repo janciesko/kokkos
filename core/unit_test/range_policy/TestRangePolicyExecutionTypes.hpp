@@ -52,8 +52,8 @@ void test_self_similar_range_policy_runtime() {
       KOKKOS_LAMBDA(const team_t& team, int& nerrs) {
         auto p_threadhandle =
             Kokkos::RangePolicy(Kokkos::ThreadHandle(team), beg, end);
-        auto ttr = Kokkos::TeamThreadRange(team, beg, end);
-        nerrs    = check_runtime_inputs(p_threadhandle, ttr.start, ttr.end);
+        auto tvr = Kokkos::ThreadVectorRange(team, beg, end);
+        nerrs    = check_runtime_inputs(p_threadhandle, tvr.start, tvr.end);
       },
       nerrs_thread_handle);
   ASSERT_EQ(nerrs_thread_handle, 0);
@@ -86,7 +86,11 @@ KOKKOS_INLINE_FUNCTION void sum_views(const Exec& exec, const X& x,
       policy, KOKKOS_LAMBDA(const int& i) { x(i) += y(i); });
 }
 
-void test_self_similar_range_policy_computation() {
+// Two-level self-similar hierarchy:
+//  lvl1: ExecSpace    -> sum_views(exec, ...)   -> RangePolicy<ExecSpace>
+//  lvl2: TeamHandle   -> sum_views(team, ...)   -> RangePolicy<TeamHandle>
+//                                                       (TeamVectorRange)
+void test_self_similar_sum_views_exec_and_team() {
   size_t N         = 7;
   size_t num_teams = 5;
 
@@ -172,7 +176,14 @@ void test_self_similar_range_policy_computation() {
   ASSERT_EQ(result, size_t(0));
 }
 
-void test_nested_self_similar_use_case() {
+// Three-level self-similar hierarchy:
+//  lvl1: ExecSpace    -> sum_views(exec, ...)   -> RangePolicy<ExecSpace>
+//  lvl2: TeamHandle   -> sum_views(team, ...)   -> RangePolicy<TeamHandle>
+//                                                       (TeamVectorRange)
+//  lvl3: ThreadHandle -> sum_views(thread, ...) ->RangePolicy<ThreadHandle>
+//                                                       (ThreadVectorRange)
+
+void test_self_similar_sum_views_nested_exec_team_thread() {
   const size_t N         = 16;
   const size_t num_teams = 4;
 
@@ -195,28 +206,31 @@ void test_nested_self_similar_use_case() {
         }
       });
 
-  // Top-level: sum_views(exec) with ExecutionSpace
+  // lvl1: sum_views with ExecutionSpace -> RangePolicy<ExecSpace>
   sum_views(Kokkos::DefaultExecutionSpace(), v_x, v_y);
 
-  // Nested: sum_views(team) inside TeamPolicy - uses TeamVectorRange
-  using team_t = typename Kokkos::TeamPolicy<>::member_type;
+  // lvl2: sum_views with TeamHandle -> RangePolicy<TeamHandle>
+  // (TeamVectorRange)
+  using team_t        = typename Kokkos::TeamPolicy<>::member_type;
+  using thread_handle = team_t::thread_handle;
   Kokkos::parallel_for(
       "nested_team", Kokkos::TeamPolicy(num_teams, Kokkos::AUTO()),
       KOKKOS_LAMBDA(const team_t& team) {
         auto row_x = Kokkos::subview(M_x, team.league_rank(), Kokkos::ALL());
         auto row_add2 =
             Kokkos::subview(M_add2, team.league_rank(), Kokkos::ALL());
-        auto row_add4 =
-            Kokkos::subview(M_add4, team.league_rank(), Kokkos::ALL());
-
         sum_views(team, row_x, row_add2);
 
-        // Nested: inner parallel_for passes (thread_handle, index) to lambda
-        Kokkos::parallel_for(
-            Kokkos::RangePolicy(Kokkos::ThreadHandle(team), 0, N),
-            KOKKOS_LAMBDA(const auto& thread_handle, const int j) {
-              if (j == 0) sum_views(thread_handle, row_x, row_add4);
-            });
+        // lvl3: TeamThreadRange distributes 1 work item to one thread.
+        // The closure receives a thread_handle indicating a further
+        // level of parallelism (vector). sum_views(thread_handle, ...) maps
+        // to RangePolicy<ThreadHandle> -> ThreadVectorRange.
+        auto row_add4 =
+            Kokkos::subview(M_add4, team.league_rank(), Kokkos::ALL());
+        Kokkos::parallel_for(Kokkos::TeamThreadRange(team, 1),
+                             [&](const thread_handle& th) {
+                               sum_views(th, row_x, row_add4);
+                             });
       });
 
   // Verify: v_x = v_y (each element = 1)
@@ -227,7 +241,7 @@ void test_nested_self_similar_use_case() {
       result);
   ASSERT_EQ(result, N);
 
-  // Verify: M_x gets +2 +4 = 6 per element
+  // Verify: M_x gets +2 (lvl2) +4 (lvl3) = 6 per element
   result = 0;
   Kokkos::parallel_reduce(
       "check_M", Kokkos::RangePolicy<>(0, num_teams * N),
@@ -244,14 +258,14 @@ TEST(TEST_CATEGORY, self_similar_range_policy_runtime) {
   test_self_similar_range_policy_runtime();
 }
 
-TEST(TEST_CATEGORY, nested_self_similar_use_case) {
-  test_nested_self_similar_use_case();
+TEST(TEST_CATEGORY, self_similar_sum_views_nested_team_thread) {
+  test_self_similar_sum_views_nested_team_thread();
 }
 
 TEST(TEST_CATEGORY, handle_concurrency) { test_handle_concurrency(); }
 
-TEST(TEST_CATEGORY, self_similar_range_policy_computation) {
-  test_self_similar_range_policy_computation();
+TEST(TEST_CATEGORY, self_similar_sum_views_exec_and_team) {
+  test_self_similar_sum_views_exec_and_team();
 }
 
 }  // namespace Test
