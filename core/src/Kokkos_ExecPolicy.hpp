@@ -41,10 +41,15 @@ struct ChunkSize {
 #endif
 };
 
+template <typename... Properties>
+class RangePolicy;
+
+namespace Impl {
+
 /** \brief Handle for thread-level parallelism within a team.
  *
- *  Use with RangePolicy to parallelize over threads in a team (TeamThreadRange
- *  semantics). Construct from a team member: ThreadHandle(team).
+ *  Use with RangePolicy to parallelize within a thread using vector resources
+ *  (ThreadVectorRange semantics). The public alias is Kokkos::ThreadHandle.
  */
 template <class TeamMemberType>
 struct ThreadHandle {
@@ -66,10 +71,6 @@ struct ThreadHandle {
   int concurrency() const { return member.team_size(); }
 };
 
-template <typename... Properties>
-class RangePolicy;
-
-namespace Impl {
 // Private tag that can be used to make a copy of another execution policy
 // and set the underlying execution space instance.
 // It does NOT perform any sanity check.
@@ -376,6 +377,10 @@ class ImplRangePolicy<ExecSpace, Properties...>
 };
 
 }  // namespace Impl
+
+template <class TeamMemberType>
+using ThreadHandle = Impl::ThreadHandle<TeamMemberType>;
+
 }  // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -925,6 +930,30 @@ struct ThreadVectorRangeBoundariesStruct {
       : start(static_cast<index_type>(arg_begin)), end(arg_end) {}
 };
 
+// Specialization for ThreadHandle: also stores the handle so it can be passed
+// to closures that accept (handle, index) signatures.
+template <typename iType, class MemberType>
+struct ThreadVectorRangeBoundariesStruct<iType, ThreadHandle<MemberType>> {
+  using index_type = iType;
+  const index_type start;
+  const index_type end;
+  enum { increment = 1 };
+  const ThreadHandle<MemberType>& member;
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr ThreadVectorRangeBoundariesStruct(
+      const ThreadHandle<MemberType>& handle, const index_type& arg_count) noexcept
+      : start(static_cast<index_type>(0)), end(arg_count), member(handle) {}
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr ThreadVectorRangeBoundariesStruct(
+      const ThreadHandle<MemberType>& handle, const index_type& arg_begin,
+      const index_type& arg_end) noexcept
+      : start(static_cast<index_type>(arg_begin)),
+        end(arg_end),
+        member(handle) {}
+};
+
 template <class TeamMemberType>
 struct ThreadSingleStruct {
   const TeamMemberType& team_member;
@@ -1382,13 +1411,13 @@ class ImplRangePolicy<Handle, Properties...>
   }
 };
 
-// Specialization of RangePolicy for thread-level parallelism (TeamThreadRange
+// Specialization of RangePolicy for thread-level parallelism (ThreadVectorRange
 // semantics)
 template <ThreadHandleType Handle, class... Properties>
 class ImplRangePolicy<Handle, Properties...>
-    : public Impl::TeamThreadRangeBoundariesStruct<
+    : public Impl::ThreadVectorRangeBoundariesStruct<
           typename Impl::PolicyTraits<Properties...>::index_type, Handle> {
-  using base_t = typename Impl::TeamThreadRangeBoundariesStruct<
+  using base_t = typename Impl::ThreadVectorRangeBoundariesStruct<
       typename Impl::PolicyTraits<Properties...>::index_type, Handle>;
 
  public:
