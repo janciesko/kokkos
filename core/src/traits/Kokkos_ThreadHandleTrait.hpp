@@ -33,7 +33,8 @@ struct ThreadHandleTrait : TraitSpecificationBase<ThreadHandleTrait> {
     KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class ThreadHandle, class AnalyzeNextTrait>
-  using mixin_matching_trait = ThreadHandleMixin<ThreadHandle, AnalyzeNextTrait>;
+  using mixin_matching_trait =
+      ThreadHandleMixin<ThreadHandle, AnalyzeNextTrait>;
   template <class T>
   using trait_matches_specification = is_thread_handle<T>;
 };
