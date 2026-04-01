@@ -51,7 +51,7 @@ void test_self_similar_range_policy_runtime() {
       "check_runtime_thread", Kokkos::TeamPolicy(1, Kokkos::AUTO()),
       KOKKOS_LAMBDA(const team_t& team, int& nerrs) {
         auto p_threadhandle =
-            Kokkos::RangePolicy(Kokkos::ThreadHandle(team), beg, end);
+            Kokkos::RangePolicy(Kokkos::ThreadHandle<team_t>(team), beg, end);
         auto tvr = Kokkos::ThreadVectorRange(team, beg, end);
         nerrs    = check_runtime_inputs(p_threadhandle, tvr.start, tvr.end);
       },
@@ -71,7 +71,7 @@ void test_handle_concurrency() {
         if (team_conc != expected_team) ++errs;
 
         // ThreadHandle: concurrency = team_size
-        auto thread_handle = Kokkos::ThreadHandle(team);
+        auto thread_handle = Kokkos::ThreadHandle<team_t>(team);
         if (thread_handle.concurrency() != team.team_size()) ++errs;
       },
       nerrs);
@@ -227,10 +227,9 @@ void test_self_similar_sum_views_nested_exec_team_thread() {
         // to RangePolicy<ThreadHandle> -> ThreadVectorRange.
         auto row_add4 =
             Kokkos::subview(M_add4, team.league_rank(), Kokkos::ALL());
-        Kokkos::parallel_for(Kokkos::TeamThreadRange(team, 1),
-                             [&](const thread_handle& th) {
-                               sum_views(th, row_x, row_add4);
-                             });
+        Kokkos::parallel_for(
+            Kokkos::TeamThreadRange(team, 1),
+            [&](const thread_handle& th) { sum_views(th, row_x, row_add4); });
       });
 
   // Verify: v_x = v_y (each element = 1)
@@ -259,7 +258,7 @@ TEST(TEST_CATEGORY, self_similar_range_policy_runtime) {
 }
 
 TEST(TEST_CATEGORY, self_similar_sum_views_nested_team_thread) {
-  test_self_similar_sum_views_nested_team_thread();
+  test_self_similar_sum_views_nested_exec_team_thread();
 }
 
 TEST(TEST_CATEGORY, handle_concurrency) { test_handle_concurrency(); }

@@ -54,6 +54,7 @@ namespace Impl {
 template <class TeamMemberType>
 struct ThreadHandle {
   TeamMemberType const& member;
+  using member_type     = TeamMemberType;
   using execution_space = typename TeamMemberType::execution_space;
   using thread_handle   = ThreadHandle;
 
@@ -292,44 +293,35 @@ class ImplRangePolicy<ExecSpace, Properties...>
   static void check_conversion_safety([[maybe_unused]] const IndexType bound) {
     // Checking that the round-trip conversion preserves input index value
     if constexpr (std::is_convertible_v<member_type, IndexType>) {
-#if !defined(KOKKOS_ENABLE_DEPRECATED_CODE_4) || \
-    defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS)
-      bool warn = false;
+      bool error = false;
 
       if constexpr (std::is_arithmetic_v<member_type> &&
                     (std::is_signed_v<IndexType> !=
                      std::is_signed_v<member_type>)) {
         // check signed to unsigned
         if constexpr (std::is_signed_v<IndexType>)
-          warn |= (bound < static_cast<IndexType>(
-                               std::numeric_limits<member_type>::min()));
+          error |= (bound < static_cast<IndexType>(
+                                std::numeric_limits<member_type>::min()));
 
         // check unsigned to signed
         if constexpr (std::is_signed_v<member_type>)
-          warn |= (bound > static_cast<IndexType>(
-                               std::numeric_limits<member_type>::max()));
+          error |= (bound > static_cast<IndexType>(
+                                std::numeric_limits<member_type>::max()));
       }
 
       // check narrowing
-      warn |=
+      error |=
           (static_cast<IndexType>(static_cast<member_type>(bound)) != bound);
 
-      if (warn) {
+      if (error) {
         std::string msg =
             "Kokkos::RangePolicy bound type error: an unsafe implicit "
             "conversion is performed on a bound (" +
             std::to_string(bound) +
             "), which may not preserve its original value.\n";
 
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
         Kokkos::abort(msg.c_str());
-#endif
-
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-        Kokkos::Impl::log_warning(msg);
-#endif
       }
-#endif
     }
   }
 
@@ -930,30 +922,6 @@ struct ThreadVectorRangeBoundariesStruct {
       : start(static_cast<index_type>(arg_begin)), end(arg_end) {}
 };
 
-// Specialization for ThreadHandle: also stores the handle so it can be passed
-// to closures that accept (handle, index) signatures.
-template <typename iType, class MemberType>
-struct ThreadVectorRangeBoundariesStruct<iType, ThreadHandle<MemberType>> {
-  using index_type = iType;
-  const index_type start;
-  const index_type end;
-  enum { increment = 1 };
-  const ThreadHandle<MemberType>& member;
-
-  KOKKOS_INLINE_FUNCTION
-  constexpr ThreadVectorRangeBoundariesStruct(
-      const ThreadHandle<MemberType>& handle, const index_type& arg_count) noexcept
-      : start(static_cast<index_type>(0)), end(arg_count), member(handle) {}
-
-  KOKKOS_INLINE_FUNCTION
-  constexpr ThreadVectorRangeBoundariesStruct(
-      const ThreadHandle<MemberType>& handle, const index_type& arg_begin,
-      const index_type& arg_end) noexcept
-      : start(static_cast<index_type>(arg_begin)),
-        end(arg_end),
-        member(handle) {}
-};
-
 template <class TeamMemberType>
 struct ThreadSingleStruct {
   const TeamMemberType& team_member;
@@ -1416,21 +1384,38 @@ class ImplRangePolicy<Handle, Properties...>
 template <ThreadHandleType Handle, class... Properties>
 class ImplRangePolicy<Handle, Properties...>
     : public Impl::ThreadVectorRangeBoundariesStruct<
-          typename Impl::PolicyTraits<Properties...>::index_type, Handle> {
+          typename Impl::PolicyTraits<Properties...>::index_type,
+          typename Handle::member_type> {
   using base_t = typename Impl::ThreadVectorRangeBoundariesStruct<
-      typename Impl::PolicyTraits<Properties...>::index_type, Handle>;
+      typename Impl::PolicyTraits<Properties...>::index_type,
+      typename Handle::member_type>;
+
+ private:
+  Handle m_handle;
 
  public:
-  using base_t::base_t;
-
   using traits = typename Impl::PolicyTraits<Properties...>;
   static_assert(std::same_as<typename traits::execution_type, Handle>);
 
   using member_type = typename traits::index_type;
   using index_type  = typename traits::index_type;
 
+  template <typename IndexType1, typename IndexType2>
+  KOKKOS_INLINE_FUNCTION ImplRangePolicy(Handle const& handle,
+                                         IndexType1 work_begin,
+                                         IndexType2 work_end)
+      : base_t(handle.member, static_cast<index_type>(work_begin),
+               static_cast<index_type>(work_end)),
+        m_handle(handle) {}
+
+  template <typename IndexType>
+  KOKKOS_INLINE_FUNCTION ImplRangePolicy(Handle const& handle,
+                                         IndexType work_count)
+      : base_t(handle.member, static_cast<index_type>(work_count)),
+        m_handle(handle) {}
+
   KOKKOS_INLINE_FUNCTION const typename traits::thread_handle& space() const {
-    return static_cast<const base_t*>(this)->member;
+    return m_handle;
   }
 
   KOKKOS_INLINE_FUNCTION member_type begin() const {
@@ -1446,9 +1431,10 @@ class ImplRangePolicy<Handle, Properties...>
 
 /** \brief  Execution policy for work over a range of an integral type.
  *
- * RangePolicy has two partial specializations: RangePolicy<ExecSpace> and
- * RangePolicy<TeamHandle>. The former parallelizes over all resources of an
- * execution space, and the latter over all resources of a thread team.
+ * RangePolicy has partial specializations for an execution space, a team
+ * handle, and a thread handle: they parallelize over an execution space, over
+ * a thread team (TeamVectorRange), and within a team thread
+ * (ThreadVectorRange), respectively.
  *
  * Valid template argument options:
  *
