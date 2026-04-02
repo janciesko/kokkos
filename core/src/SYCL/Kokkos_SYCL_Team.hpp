@@ -59,6 +59,14 @@ class SYCLTeamMember {
   KOKKOS_INLINE_FUNCTION int team_size() const {
     return m_item.get_local_range(0);
   }
+  /** \brief Number of vector lanes per thread (dimension 1). */
+  KOKKOS_INLINE_FUNCTION int vector_length() const {
+    return m_item.get_local_range(1);
+  }
+  /** \brief Maximum concurrency at team level (team_size * vector_length). */
+  KOKKOS_INLINE_FUNCTION int concurrency() const {
+    return team_size() * vector_length();
+  }
   KOKKOS_INLINE_FUNCTION void team_barrier() const {
     sycl::group_barrier(m_item.get_group());
   }
@@ -671,6 +679,8 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
     const Impl::TeamVectorRangeBoundariesStruct<iType, Impl::SYCLTeamMember>&
         loop_boundaries,
     const Closure& closure) {
+  auto const thread_handle =
+      Kokkos::ThreadHandle<Impl::SYCLTeamMember>(loop_boundaries.member);
   const iType tidx0 = loop_boundaries.member.item().get_local_id(0);
   const iType tidx1 = loop_boundaries.member.item().get_local_id(1);
 
@@ -678,8 +688,17 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
   const iType grange1 = loop_boundaries.member.item().get_local_range(1);
 
   for (iType i = loop_boundaries.start + tidx0 * grange1 + tidx1;
-       i < loop_boundaries.end; i += grange0 * grange1)
-    closure(i);
+       i < loop_boundaries.end; i += grange0 * grange1) {
+    if constexpr (std::is_invocable_v<Closure, decltype((thread_handle)),
+                                      iType>) {
+      closure(thread_handle, i);
+    } else if constexpr (std::is_invocable_v<Closure,
+                                             decltype((thread_handle))>) {
+      closure(thread_handle);
+    } else {
+      closure(i);
+    }
+  }
 }
 
 template <typename iType, class Closure, class ReducerType>
