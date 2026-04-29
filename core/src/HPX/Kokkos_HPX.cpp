@@ -117,15 +117,27 @@ void HPX::impl_instance_fence(const std::string &name) const {
 }
 
 void HPX::impl_static_fence(const std::string &name) {
+  // During Kokkos finalization, other exec spaces may still call
+  // Kokkos::fence() (e.g., from HostSpace deallocations). That fence traverses
+  // all registered backends, including HPX, even if HPX has already been
+  // finalized. In that case the default instance data is null and the runtime
+  // may already be stopped, so a fence must become a no-op.
+  auto instance = m_default_instance_data;
+  if (!instance) return;
+
+  // If HPX is not running we cannot safely use senders/sync_wait.
+  if (hpx::get_runtime_ptr() == nullptr) return;
+
   Kokkos::Tools::Experimental::Impl::profile_fence_event<
       Kokkos::Experimental::HPX>(
       name,
       Kokkos::Tools::Experimental::SpecialSynchronizationCases::
           GlobalDeviceSynchronization,
       [&]() {
-        auto &s = HPX().impl_get_sender();
-
-        std::unique_lock<hpx::spinlock> l(HPX().impl_get_sender_mutex());
+        // using instance here seems safer as HPX().impl_get_sender() might
+        // return NULL here?
+        auto &s = instance->m_sender;
+        std::unique_lock<hpx::spinlock> l(instance->m_sender_mutex);
 
         // This is a loose fence. Any work scheduled before this will be waited
         // for, but work scheduled while waiting may also be waited for.
