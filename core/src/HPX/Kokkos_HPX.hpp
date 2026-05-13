@@ -658,7 +658,7 @@ struct HPXTeamMember {
       Kokkos::atomic_fetch_add(global_accum, value);
     }
 
-    return 0;
+    return Type{};
   }
 };
 
